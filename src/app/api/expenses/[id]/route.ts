@@ -32,6 +32,7 @@ export async function PATCH(
 
     const body = await request.json();
     const {
+      headline,
       title,
       category,
       amount,
@@ -44,9 +45,12 @@ export async function PATCH(
     const updates: string[] = [];
     const values: unknown[] = [];
 
-    if (title !== undefined) {
-      values.push(title.trim());
-      updates.push(`title = $${values.length}`);
+    const effectiveHeadline = headline !== undefined ? headline : title;
+    if (effectiveHeadline !== undefined) {
+      values.push(effectiveHeadline ? effectiveHeadline.trim() : '');
+      const hIdx = values.length;
+      updates.push(`headline = $${hIdx}`);
+      updates.push(`title = $${hIdx}`);
     }
     if (category !== undefined) {
       values.push(category);

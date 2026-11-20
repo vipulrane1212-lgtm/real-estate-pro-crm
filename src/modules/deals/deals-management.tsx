@@ -16,12 +16,14 @@ import {
   TrendingUp,
   CreditCard,
   Trash2,
+  FileText,
 } from 'lucide-react';
 import { Deal, BrokerageRecord } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DealModal } from './deal-modal';
+import { DocumentUploadModal } from '@/modules/documents/document-upload-modal';
 
 function formatCurrencyINR(amount: number): string {
   if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
@@ -49,6 +51,7 @@ export function DealsManagement() {
   const [payingRecord, setPayingRecord] = useState<BrokerageRecord | null>(null);
   const [paidInput, setPaidInput] = useState('');
   const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const [documentUploadDeal, setDocumentUploadDeal] = useState<Deal | null>(null);
 
   const fetchData = async () => {
     try {
@@ -344,16 +347,29 @@ export function DealsManagement() {
                           })}
                         </td>
                         <td className="py-3 pl-2 pr-4 text-right">
-                          {isAdmin && (
+                          <div className="flex items-center justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteDeal(d.id)}
-                              className="h-7 px-2 text-slate-400 hover:text-red-600"
+                              onClick={() => setDocumentUploadDeal(d)}
+                              className="h-7 px-2 text-slate-500 hover:text-amber-800 hover:bg-amber-50"
+                              title="Upload Agreement or Documents"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <FileText className="h-3.5 w-3.5 mr-1" />
+                              Docs
                             </Button>
-                          )}
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteDeal(d.id)}
+                                className="h-7 px-2 text-slate-400 hover:text-red-600"
+                                title="Delete Deal"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -520,6 +536,19 @@ export function DealsManagement() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Deal Document Upload Modal */}
+      {documentUploadDeal && (
+        <DocumentUploadModal
+          isOpen={!!documentUploadDeal}
+          onClose={() => setDocumentUploadDeal(null)}
+          onSuccess={() => {
+            fetchData();
+          }}
+          initialDealId={documentUploadDeal.id}
+          deals={deals.map((d) => ({ id: d.id, deal_number: d.deal_number }))}
+        />
       )}
     </div>
   );

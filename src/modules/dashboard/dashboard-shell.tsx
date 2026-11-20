@@ -18,6 +18,8 @@ import { DashboardStats } from '@/lib/supabase/types';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Expenses30DayChart, DailySpendPoint } from '@/components/charts/expenses-30day-chart';
+import { ExpiringAgreementsWidget } from '@/components/widgets/expiring-agreements-widget';
 
 interface DashboardShellProps {
   userName: string;
@@ -32,18 +34,41 @@ export function DashboardShell({ userName }: DashboardShellProps) {
     closedDeals: 0,
     availableProperties: 0,
   });
+  const [expenseData, setExpenseData] = useState<{
+    last30Days: DailySpendPoint[];
+    thisMonthTotal: number;
+    todayTotal: number;
+  }>({
+    last30Days: [],
+    thisMonthTotal: 0,
+    todayTotal: 0,
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchStats = async () => {
     try {
       setIsRefreshing(true);
-      const res = await fetch('/api/dashboard/stats');
-      if (res.ok) {
-        const data = await res.json();
+      const [resStats, resExp] = await Promise.all([
+        fetch('/api/dashboard/stats'),
+        fetch('/api/expenses'),
+      ]);
+
+      if (resStats.ok) {
+        const data = await resStats.json();
         if (data.stats) {
           setStats(data.stats);
         }
+      }
+
+      if (resExp.ok) {
+        const expJson = await resExp.json();
+        setExpenseData({
+          last30Days: expJson.last30Days || [],
+          thisMonthTotal: expJson.totals?.thisMonthTotal || 0,
+          todayTotal: expJson.totals?.todayTotal || 0,
+        });
       }
     } catch (err) {
       console.error('Failed to load dashboard metrics:', err);
@@ -98,7 +123,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
       title: 'Closed Deals',
       value: stats.closedDeals,
       icon: CheckCircle2,
-      href: '/deals',
+      href: '/brokerage',
       description: 'Successfully closed transactions',
       color: 'border-slate-200 text-slate-800',
       iconBg: 'bg-emerald-50 text-emerald-600',
@@ -124,7 +149,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
               Welcome back, {userName || 'Agent'}
             </h1>
             <Badge variant="gold" className="text-[10px]">
-              Phase 2 Active
+              Phase 5 Active
             </Badge>
           </div>
           <p className="mt-1 text-sm text-slate-500">
@@ -190,6 +215,21 @@ export function DashboardShell({ userName }: DashboardShellProps) {
             </Card>
           );
         })}
+      </div>
+
+      {/* Phase 5 Widgets Grid: 30-Day Expense Bar Chart + Expiring Agreements Widget */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div>
+          <Expenses30DayChart
+            data={expenseData.last30Days}
+            monthTotal={expenseData.thisMonthTotal}
+            todayTotal={expenseData.todayTotal}
+            variant="compact"
+          />
+        </div>
+        <div>
+          <ExpiringAgreementsWidget />
+        </div>
       </div>
 
       {/* Real Estate Activity & Roster Grid */}

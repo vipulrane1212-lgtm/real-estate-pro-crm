@@ -57,6 +57,7 @@ export async function GET(request: Request) {
         d.brokerage_percentage,
         d.deal_date,
         d.closed_date,
+        TO_CHAR(d.agreement_end_date, 'YYYY-MM-DD') as agreement_end_date,
         d.status,
         d.notes,
         d.created_at,
@@ -122,6 +123,8 @@ export async function POST(request: Request) {
       status = 'closed_won',
       deal_date,
       closed_date,
+      agreement_end_date,
+      agreementEndDate,
       notes,
       employee_id,
     } = body;
@@ -130,6 +133,7 @@ export async function POST(request: Request) {
     const targetPropertyId = property_id || propertyId;
     const targetDealVal = Number(deal_value ?? dealValue);
     const targetPct = Number(brokerage_percentage ?? brokeragePercentage ?? 2.0);
+    const targetAgreementEnd = agreement_end_date || agreementEndDate || null;
 
     if (!targetLeadId) {
       return NextResponse.json({ error: 'lead_id is required' }, { status: 400 });
@@ -171,9 +175,10 @@ export async function POST(request: Request) {
         brokerage_percentage,
         deal_date,
         closed_date,
+        agreement_end_date,
         status,
         notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10)
       RETURNING *
     `;
 
@@ -185,6 +190,7 @@ export async function POST(request: Request) {
       commissionAmount,
       targetPct,
       finalDealDate,
+      targetAgreementEnd,
       status,
       notes || null,
     ]);

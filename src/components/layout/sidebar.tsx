@@ -171,10 +171,10 @@ export function Sidebar({
           <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 p-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Phase 4 Active
+              Phase 5 Active
             </div>
             <p className="mt-1 text-[11px] text-amber-800/80 leading-relaxed">
-              Documents, GPS Attendance & Office Expenses are live.
+              Expenses 30D Chart, Loud Alarms, Voice Alerts &amp; Android App.
             </p>
           </div>
         </div>

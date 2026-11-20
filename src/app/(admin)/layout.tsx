@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/modules/auth/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
+import { FollowUpAlarmOverlay } from '@/components/reminders/follow-up-alarm-overlay';
+import { VoiceAlertAnnouncer } from '@/components/reminders/voice-alert-announcer';
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { profile, user, role } = useAuth();
@@ -11,6 +13,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
+      {/* Follow-up Loud Alarm Overlay (Unmissable full-screen reminder) */}
+      <FollowUpAlarmOverlay />
+
       {/* Sidebar Navigation */}
       <Sidebar
         userRole={role}
@@ -21,6 +26,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main App Container */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Agreement / Renewal Voice Alert & Banner */}
+        <VoiceAlertAnnouncer />
+
         <Topbar
           userName={profile?.full_name || 'Agent'}
           userEmail={user?.email}

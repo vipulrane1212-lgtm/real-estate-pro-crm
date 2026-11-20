@@ -39,6 +39,7 @@ export function DealModal({
   const [brokeragePercent, setBrokeragePercent] = useState('2.0');
   const [status, setStatus] = useState<'closed_won' | 'in_progress' | 'cancelled'>('closed_won');
   const [closedDate, setClosedDate] = useState('');
+  const [agreementEndDate, setAgreementEndDate] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -136,6 +137,7 @@ export function DealModal({
           brokerage_percentage: Number(brokeragePercent) || 2.0,
           status,
           closed_date: closedDate || new Date().toISOString().split('T')[0],
+          agreement_end_date: agreementEndDate || null,
           notes: notes.trim() || null,
         }),
       });
@@ -301,6 +303,22 @@ export function DealModal({
               className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-hidden"
             />
           </div>
+        </div>
+
+        {/* Optional Agreement / Renewal End Date for Voice Alerts */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Agreement / Lease Expiry Date (Optional — for Renewal Voice Alerts)
+          </label>
+          <input
+            type="date"
+            value={agreementEndDate}
+            onChange={(e) => setAgreementEndDate(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-hidden"
+          />
+          <p className="text-[10px] text-slate-400 mt-0.5">
+            When set, the system will speak voice alerts 7, 3, 1 day before, and on the expiry day.
+          </p>
         </div>
 
         {/* Notes */}

@@ -21,6 +21,7 @@ import {
   List,
   RefreshCw,
   ExternalLink,
+  FileText,
 } from 'lucide-react';
 import { Property, PropertyType, PropertyStatus } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PropertyModal } from './property-modal';
 import { Property360Viewer } from './property-360-viewer';
+import { DocumentUploadModal } from '@/modules/documents/document-upload-modal';
 import { Modal } from '@/components/ui/modal';
 
 function formatPriceINR(amount: number): string {
@@ -79,6 +81,9 @@ export function PropertyManagement() {
   // Gallery Modal
   const [galleryProperty, setGalleryProperty] = useState<Property | null>(null);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+
+  // Document Upload Modal
+  const [uploadDocProperty, setUploadDocProperty] = useState<Property | null>(null);
 
   const fetchProperties = async () => {
     try {
@@ -379,6 +384,13 @@ export function PropertyManagement() {
 
                     <div className="flex items-center gap-1">
                       <button
+                        onClick={() => setUploadDocProperty(property)}
+                        className="rounded-md p-1.5 text-slate-500 hover:bg-amber-50 hover:text-amber-800 transition-colors"
+                        title="Upload Property Documents (Index 2, OC, CC, RERA)"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                      </button>
+                      <button
                         onClick={() => {
                           setEditingProperty(property);
                           setIsModalOpen(true);
@@ -456,6 +468,13 @@ export function PropertyManagement() {
                             <Compass className="h-3.5 w-3.5" />
                           </button>
                         )}
+                        <button
+                          onClick={() => setUploadDocProperty(p)}
+                          className="p-1 text-slate-500 hover:text-amber-800 hover:bg-amber-50 rounded"
+                          title="Upload Property Documents"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                        </button>
                         <button
                           onClick={() => {
                             setEditingProperty(p);
@@ -549,6 +568,19 @@ export function PropertyManagement() {
           </div>
         )}
       </Modal>
+
+      {/* Property Document Upload Modal */}
+      {uploadDocProperty && (
+        <DocumentUploadModal
+          isOpen={!!uploadDocProperty}
+          onClose={() => setUploadDocProperty(null)}
+          onSuccess={() => {
+            fetchProperties();
+          }}
+          initialPropertyId={uploadDocProperty.id}
+          properties={properties.map((p) => ({ id: p.id, title: p.title }))}
+        />
+      )}
     </div>
   );
 }

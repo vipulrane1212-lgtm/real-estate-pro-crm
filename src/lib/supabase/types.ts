@@ -351,6 +351,7 @@ export interface Deal {
   brokerage_percentage: number;
   deal_date: string;
   closed_date: string;
+  agreement_end_date?: string | null;
   status: 'in_progress' | 'closed_won' | 'cancelled';
   notes: string | null;
   created_at: string;
@@ -454,8 +455,9 @@ export type ExpenseCategory =
 
 export interface ExpenseRecord {
   id: string;
-  title: string;
-  category: ExpenseCategory | string;
+  headline?: string;
+  title?: string;
+  category?: ExpenseCategory | string;
   amount: number;
   expense_date: string;
   paid_to: string | null;

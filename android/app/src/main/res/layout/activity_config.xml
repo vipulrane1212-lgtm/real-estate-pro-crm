@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_light"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Diksha CRM Backend Connection"
+        android:textColor="@color/primary_navy"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Configure the Next.js CRM server URL. When testing locally via phone, enter your computer's local WiFi IP (e.g., http://192.168.1.15:3000) or http://10.0.2.2:3000 for Android Emulator."
+        android:textColor="@color/text_muted"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Server Host / Address (with Port)"
+        android:textColor="@color/text_dark"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/edit_server_url"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@color/white"
+        android:hint="http://192.168.1.15:3000"
+        android:inputType="textUri"
+        android:paddingHorizontal="12dp"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/txt_test_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/primary_gold"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_test_connection"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="Test Ping"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_save_connect"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@color/primary_navy"
+            android:text="Save &amp; Connect"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="24dp"
+        android:background="#e2e8f0" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quick Presets for Local Testing:"
+        android:textColor="@color/text_dark"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/btn_preset_emulator"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:layout_marginTop="6dp"
+        android:gravity="left|center_vertical"
+        android:text="• Android Emulator (http://10.0.2.2:3000)"
+        android:textAllCaps="false"
+        android:textColor="@color/primary_gold"
+        android:textSize="12sp" />
+
+    <Button
+        android:id="@+id/btn_preset_localhost"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="left|center_vertical"
+        android:text="• Localhost (http://localhost:3000)"
+        android:textAllCaps="false"
+        android:textColor="@color/primary_gold"
+        android:textSize="12sp" />
+</LinearLayout>

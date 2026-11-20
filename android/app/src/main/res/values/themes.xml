@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DikshaCRM" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/primary_navy</item>
+        <item name="android:colorPrimaryDark">#020617</item>
+        <item name="android:colorAccent">@color/primary_gold</item>
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="android:statusBarColor">@color/primary_navy</item>
+    </style>
+
+    <style name="Theme.DikshaCRM.Alarm" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/alarm_red</item>
+        <item name="android:colorPrimaryDark">@color/alarm_red_dark</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:statusBarColor">@color/alarm_red_dark</item>
+        <item name="android:windowShowWhenLocked">true</item>
+        <item name="android:windowTurnScreenOn">true</item>
+    </style>
+</resources>

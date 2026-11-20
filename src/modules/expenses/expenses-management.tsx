@@ -9,47 +9,30 @@ import {
   FileSpreadsheet,
   IndianRupee,
   Calendar,
-  Tag,
   Edit,
   Trash2,
   ExternalLink,
-  DollarSign,
   TrendingUp,
-  PieChart,
+  X,
 } from 'lucide-react';
-import { ExpenseRecord, ExpenseCategory } from '@/lib/supabase/types';
+import { ExpenseRecord } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ExpenseModal } from './expense-modal';
-
-function formatCurrencyINR(amount: number): string {
-  if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
-  if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} Lakh`;
-  return `₹${amount.toLocaleString('en-IN')}`;
-}
-
-const CATEGORY_COLORS: Record<string, { label: string; color: string }> = {
-  rent: { label: 'Rent & Office', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  electricity: { label: 'Utilities', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  tea_coffee: { label: 'Pantry / Tea', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  travel: { label: 'Travel & Fuel', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  marketing: { label: 'Marketing', color: 'bg-pink-50 text-pink-700 border-pink-200' },
-  stationery: { label: 'Stationery', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  salary_advance: { label: 'Salary Advance', color: 'bg-orange-50 text-orange-700 border-orange-200' },
-  other: { label: 'General / Other', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-};
+import { Expenses30DayChart, DailySpendPoint } from '@/components/charts/expenses-30day-chart';
 
 export function ExpensesManagement() {
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [totals, setTotals] = useState<{
     thisMonthTotal: number;
-    categoryBreakdown: Record<string, number>;
+    todayTotal: number;
     recordCount: number;
   }>({
     thisMonthTotal: 0,
-    categoryBreakdown: {},
+    todayTotal: 0,
     recordCount: 0,
   });
+  const [last30Days, setLast30Days] = useState<DailySpendPoint[]>([]);
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +41,9 @@ export function ExpensesManagement() {
   // Filters
   const currentMonthStr = new Date().toISOString().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   // Modals
@@ -78,8 +63,13 @@ export function ExpensesManagement() {
       }
 
       const params = new URLSearchParams();
-      if (selectedMonth) params.set('month', selectedMonth);
-      if (categoryFilter !== 'all') params.set('category', categoryFilter);
+      if (fromDate && toDate) {
+        params.set('from', fromDate);
+        params.set('to', toDate);
+      } else if (selectedMonth) {
+        params.set('month', selectedMonth);
+      }
+
       if (search.trim()) params.set('search', search.trim());
 
       const res = await fetch(`/api/expenses?${params.toString()}`);
@@ -87,6 +77,7 @@ export function ExpensesManagement() {
         const json = await res.json();
         setExpenses(json.expenses || []);
         if (json.totals) setTotals(json.totals);
+        if (json.last30Days) setLast30Days(json.last30Days);
       }
     } catch (err) {
       console.error('Failed to load expenses:', err);
@@ -98,19 +89,29 @@ export function ExpensesManagement() {
 
   useEffect(() => {
     fetchExpenses();
-  }, [selectedMonth, categoryFilter]);
+  }, [selectedMonth, fromDate, toDate]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     fetchExpenses();
   };
 
+  const clearDateRange = () => {
+    setFromDate('');
+    setToDate('');
+    setSelectedDay(null);
+  };
+
   const handleExportExcel = async () => {
     setIsExportingExcel(true);
     try {
       const params = new URLSearchParams();
-      if (selectedMonth) params.set('month', selectedMonth);
-      if (categoryFilter !== 'all') params.set('category', categoryFilter);
+      if (fromDate && toDate) {
+        params.set('from', fromDate);
+        params.set('to', toDate);
+      } else if (selectedMonth) {
+        params.set('month', selectedMonth);
+      }
 
       const res = await fetch(`/api/expenses/export?${params.toString()}`);
       if (!res.ok) throw new Error('Export failed');
@@ -118,7 +119,7 @@ export function ExpensesManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Diksha_Expenses_Report_${selectedMonth}.xlsx`;
+      a.download = `Diksha_Expenses_Report_${fromDate ? `${fromDate}_to_${toDate}` : selectedMonth}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -131,8 +132,8 @@ export function ExpensesManagement() {
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete expense "${title}"? This action is recorded in the audit log.`)) {
+  const handleDelete = async (id: string, headline: string) => {
+    if (!window.confirm(`Are you sure you want to delete expense "${headline}"? This action is recorded in the audit log.`)) {
       return;
     }
 
@@ -163,6 +164,11 @@ export function ExpensesManagement() {
     setIsModalOpen(true);
   };
 
+  // Filter expenses if a specific day is selected from the 30-day chart
+  const displayedExpenses = selectedDay
+    ? expenses.filter((e) => e.expense_date === selectedDay)
+    : expenses;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -172,7 +178,7 @@ export function ExpensesManagement() {
             Office Expenses & Ledger
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Track day-to-day administrative outflows, utilities, site travel, and petty cash.
+            Free-form tracking of operational outflows, tea/snacks, travel, utilities, and office bills.
           </p>
         </div>
 
@@ -209,225 +215,198 @@ export function ExpensesManagement() {
         </div>
       </div>
 
-      {/* Top 3 KPI Financial Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Total Spend ({selectedMonth})
-            </span>
-            <div className="rounded-lg bg-rose-50 p-2 text-rose-600">
-              <IndianRupee className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold tracking-tight text-slate-900">
-              {formatCurrencyINR(totals.thisMonthTotal)}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-slate-500">Across {totals.recordCount} recorded expenditures</p>
-        </div>
+      {/* 30-Day Daily Expenses Chart */}
+      <Expenses30DayChart
+        data={last30Days}
+        monthTotal={totals.thisMonthTotal}
+        todayTotal={totals.todayTotal}
+        selectedDate={selectedDay}
+        onSelectDate={setSelectedDay}
+        variant="full"
+      />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Top Outflow Category
-            </span>
-            <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
-              <PieChart className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-lg font-bold text-slate-900 capitalize">
-              {Object.keys(totals.categoryBreakdown).length > 0
-                ? Object.entries(totals.categoryBreakdown).sort((a, b) => b[1] - a[1])[0][0].replace('_', ' ')
-                : 'None'}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-slate-500">
-            {Object.keys(totals.categoryBreakdown).length > 0
-              ? formatCurrencyINR(Object.entries(totals.categoryBreakdown).sort((a, b) => b[1] - a[1])[0][1])
-              : 'No expenses logged'}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Current Billing Cycle
-            </span>
-            <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-              <Calendar className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              {new Date(`${selectedMonth}-01`).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-slate-500">Auto-balanced monthly expense cycle</p>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+      {/* Filter and Search Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        {/* Search */}
+        <form onSubmit={handleSearchSubmit} className="flex-1 relative max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
+            placeholder="Search by headline, notes, or vendor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, vendor, or notes..."
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:border-amber-500 focus:bg-white focus:outline-hidden"
+            className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </form>
 
+        {/* Date Filters */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Month Selector */}
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 font-medium focus:border-amber-500 focus:outline-hidden"
-          />
+          {/* Month selector */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg">
+            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+            <span className="font-medium">Month:</span>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => {
+                setSelectedMonth(e.target.value);
+                setFromDate('');
+                setToDate('');
+                setSelectedDay(null);
+              }}
+              className="bg-transparent border-none text-xs focus:outline-none cursor-pointer font-semibold text-slate-800"
+            />
+          </div>
 
-          {/* Category Dropdown */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 font-medium focus:border-amber-500 focus:outline-hidden"
-          >
-            <option value="all">All Expense Categories</option>
-            <option value="rent">Office Rent & Maintenance</option>
-            <option value="electricity">Electricity & Utilities</option>
-            <option value="tea_coffee">Tea / Coffee / Pantry</option>
-            <option value="travel">Travel & Site Fuel</option>
-            <option value="marketing">Marketing & Advertising</option>
-            <option value="stationery">Stationery & Printing</option>
-            <option value="salary_advance">Salary Advance</option>
-            <option value="other">Other Operational</option>
-          </select>
+          {/* Date range picker */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg">
+            <span className="font-medium">From:</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setSelectedDay(null);
+              }}
+              className="bg-transparent border-none text-xs focus:outline-none cursor-pointer text-slate-800"
+            />
+            <span className="font-medium">To:</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setSelectedDay(null);
+              }}
+              className="bg-transparent border-none text-xs focus:outline-none cursor-pointer text-slate-800"
+            />
+            {(fromDate || toDate) && (
+              <button
+                type="button"
+                onClick={clearDateRange}
+                className="text-slate-400 hover:text-red-500 ml-1"
+                title="Clear date range"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Expenses Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <RefreshCw className="h-6 w-6 animate-spin text-amber-500" />
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-amber-600" />
+            <h3 className="font-semibold text-slate-900 text-sm">
+              Expense Records {selectedDay ? `for ${selectedDay}` : `(${displayedExpenses.length})`}
+            </h3>
           </div>
-        ) : expenses.length === 0 ? (
+          {selectedDay && (
+            <button
+              onClick={() => setSelectedDay(null)}
+              className="text-xs text-amber-700 hover:underline font-medium"
+            >
+              Clear day filter (show all)
+            </button>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="p-8 text-center text-sm text-slate-500">Loading office expenses...</div>
+        ) : displayedExpenses.length === 0 ? (
           <EmptyState
             title="No data yet"
-            description={`No office expenses recorded for ${selectedMonth}. Click "Record Expense" to log operational costs.`}
-            icon={Receipt}
+            description={
+              selectedDay
+                ? `No expenses recorded for ${selectedDay}.`
+                : search
+                ? `No expenses match "${search}".`
+                : 'No office expenses recorded for this period yet.'
+            }
+            actionText="Record First Expense"
+            onAction={openCreateModal}
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <table className="w-full text-left text-xs text-slate-600">
+              <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Expense Title</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Paid To</th>
-                  <th className="py-3 px-4">Added By</th>
-                  <th className="py-3 px-4">Receipt</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4 font-semibold">Date</th>
+                  <th className="py-3 px-4 font-semibold">Headline / Description</th>
+                  <th className="py-3 px-4 font-semibold">Amount</th>
+                  <th className="py-3 px-4 font-semibold">Paid To</th>
+                  <th className="py-3 px-4 font-semibold">Added By</th>
+                  <th className="py-3 px-4 font-semibold">Notes</th>
+                  <th className="py-3 px-4 font-semibold">Receipt</th>
+                  {isAdmin && <th className="py-3 px-4 font-semibold text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {expenses.map((exp) => {
-                  const catMeta = CATEGORY_COLORS[exp.category] || CATEGORY_COLORS.other;
-
+              <tbody className="divide-y divide-slate-100">
+                {displayedExpenses.map((exp) => {
+                  const displayHeadline = exp.headline || exp.title || 'Expense';
                   return (
-                    <tr key={exp.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Date */}
-                      <td className="py-3 px-4 font-medium text-slate-900 whitespace-nowrap">
-                        {new Date(exp.expense_date).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                    <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-4 whitespace-nowrap font-medium text-slate-700">
+                        {exp.expense_date}
                       </td>
-
-                      {/* Title & Notes */}
                       <td className="py-3 px-4">
-                        <span className="font-semibold text-slate-900 block">{exp.title}</span>
-                        {exp.notes && (
-                          <span className="text-[10px] text-slate-400 block truncate max-w-xs">{exp.notes}</span>
-                        )}
-                      </td>
-
-                      {/* Category Badge */}
-                      <td className="py-3 px-4">
-                        <span className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-semibold ${catMeta.color}`}>
-                          {catMeta.label}
+                        <span className="font-semibold text-slate-900 text-sm block">
+                          {displayHeadline}
                         </span>
                       </td>
-
-                      {/* Amount */}
-                      <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
-                        {formatCurrencyINR(exp.amount)}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="font-bold text-slate-900 text-sm">
+                          ₹{Number(exp.amount).toLocaleString('en-IN')}
+                        </span>
                       </td>
-
-                      {/* Paid To */}
-                      <td className="py-3 px-4 text-slate-600">
+                      <td className="py-3 px-4 whitespace-nowrap text-slate-700">
                         {exp.paid_to || '—'}
                       </td>
-
-                      {/* Added By */}
-                      <td className="py-3 px-4 text-slate-600">
-                        {exp.employee?.profile?.full_name || 'Admin'}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
+                          {exp.employee?.profile?.full_name || 'Admin'}
+                        </span>
                       </td>
-
-                      {/* Receipt */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 max-w-xs truncate text-slate-500">
+                        {exp.notes || '—'}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
                         {exp.receipt_url ? (
                           <a
                             href={exp.receipt_url}
                             target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-amber-700 hover:underline font-medium"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-800 font-medium underline"
                           >
-                            <ExternalLink className="h-3 w-3" />
-                            View Bill
+                            <ExternalLink className="h-3 w-3" /> View
                           </a>
                         ) : (
-                          <span className="text-slate-400 text-[10px]">None</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
-
-                      {/* Actions */}
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {isAdmin && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditModal(exp)}
-                                className="text-slate-400 hover:text-slate-900 p-1"
-                                title="Edit Expense (Admin)"
-                              >
-                                <Edit className="h-3.5 w-3.5" />
-                              </Button>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={deletingId === exp.id}
-                                onClick={() => handleDelete(exp.id, exp.title)}
-                                className="text-slate-400 hover:text-red-600 p-1"
-                                title="Delete Expense (Admin)"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                      {isAdmin && (
+                        <td className="py-3 px-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => openEditModal(exp)}
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                              title="Edit Expense"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(exp.id, displayHeadline)}
+                              disabled={deletingId === exp.id}
+                              className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
+                              title="Delete Expense"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
@@ -437,14 +416,10 @@ export function ExpensesManagement() {
         )}
       </div>
 
-      {/* Add / Edit Expense Modal */}
       <ExpenseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          setIsModalOpen(false);
-          fetchExpenses(true);
-        }}
+        onSuccess={() => fetchExpenses()}
         expenseToEdit={editingExpense}
       />
     </div>

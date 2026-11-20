@@ -36,7 +36,16 @@ export async function GET(request: Request) {
       conditions.push(`ex.category = $${params.length}`);
     }
 
-    if (month && month !== 'all') {
+    const fromDate = searchParams.get('from') || searchParams.get('startDate');
+    const toDate = searchParams.get('to') || searchParams.get('endDate');
+
+    if (fromDate && toDate) {
+      params.push(fromDate);
+      const fIdx = params.length;
+      params.push(toDate);
+      const tIdx = params.length;
+      conditions.push(`ex.expense_date >= $${fIdx}::date AND ex.expense_date <= $${tIdx}::date`);
+    } else if (month && month !== 'all') {
       params.push(`${month}-01`);
       conditions.push(`ex.expense_date >= $${params.length}::date AND ex.expense_date < ($${params.length}::date + INTERVAL '1 month')`);
     }
@@ -46,12 +55,11 @@ export async function GET(request: Request) {
     const sql = `
       SELECT 
         TO_CHAR(ex.expense_date, 'YYYY-MM-DD') as "Date",
-        ex.title as "Expense Title",
-        UPPER(ex.category) as "Category",
-        ex.amount as "Amount (INR)",
+        COALESCE(ex.headline, ex.title, 'Expense') as "Headline",
+        COALESCE(ex.notes, '—') as "Notes",
+        ex.amount as "Total Amount (INR)",
         COALESCE(ex.paid_to, '—') as "Paid To",
         COALESCE(p.full_name, 'Diksha Real Estate') as "Added By",
-        COALESCE(ex.notes, '—') as "Notes",
         CASE WHEN ex.receipt_url IS NOT NULL THEN 'ATTACHED' ELSE 'NONE' END as "Receipt Attached"
       FROM public.expenses ex
       LEFT JOIN public.employees e ON ex.employee_id = e.id
