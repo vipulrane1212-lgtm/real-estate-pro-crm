@@ -174,6 +174,19 @@ export type PropertyType =
 
 export type PropertyStatus = 'available' | 'hold' | 'sold' | 'rented';
 
+export interface PropertyPhotoItem {
+  url: string;
+  room?: string;
+  caption?: string;
+}
+
+export interface PropertyVideoItem {
+  url: string;
+  title?: string;
+  room?: string;
+  type?: 'upload' | 'youtube' | 'vimeo' | 'direct';
+}
+
 export interface Property {
   id: string;
   property_code: string | null;
@@ -193,7 +206,8 @@ export interface Property {
   pincode: string | null;
   status: PropertyStatus;
   assigned_agent_id: string | null;
-  photos: string[];
+  photos: Array<string | PropertyPhotoItem>;
+  videos?: PropertyVideoItem[];
   video_url: string | null;
   document_url: string | null;
   view_360_url: string | null;

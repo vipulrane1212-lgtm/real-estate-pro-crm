@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       'company-assets',
       'documents',
       'property-photos',
+      'property-videos',
       'call-recordings',
       'attendance',
       'expenses',

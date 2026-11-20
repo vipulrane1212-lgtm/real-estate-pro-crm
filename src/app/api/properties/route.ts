@@ -85,6 +85,7 @@ export async function GET(request: Request) {
         p.status,
         p.assigned_agent_id,
         COALESCE(p.photos, '[]'::jsonb) as photos,
+        COALESCE(p.videos, '[]'::jsonb) as videos,
         p.video_url,
         p.document_url,
         p.view_360_url,
@@ -115,6 +116,7 @@ export async function GET(request: Request) {
       price: Number(r.price),
       size_sqft: r.size_sqft ? Number(r.size_sqft) : null,
       photos: Array.isArray(r.photos) ? r.photos : [],
+      videos: Array.isArray(r.videos) ? r.videos : [],
       amenities: Array.isArray(r.amenities) ? r.amenities : [],
       assigned_agent: r.assigned_agent_id ? r.assigned_agent : null,
     }));
@@ -134,28 +136,27 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const {
-      title,
-      property_type,
-      price,
-      location,
-      address,
-      bhk,
-      size_sqft,
-      bedrooms,
-      bathrooms,
-      listing_type = 'sale',
-      status = 'available',
-      photos = [],
-      video_url,
-      document_url,
-      view_360_url,
-      owner_name,
-      owner_phone,
-      description,
-      amenities = [],
-      assigned_agent_id,
-    } = body;
+    const title = body.title;
+    const property_type = body.property_type || body.propertyType;
+    const price = body.price;
+    const location = body.location;
+    const address = body.address;
+    const bhk = body.bhk;
+    const size_sqft = body.size_sqft ?? body.sizeSqft;
+    const bedrooms = body.bedrooms;
+    const bathrooms = body.bathrooms;
+    const listing_type = body.listing_type || body.listingType || 'sale';
+    const status = body.status || 'available';
+    const photos = body.photos || [];
+    const videos = body.videos || [];
+    const video_url = body.video_url || body.videoUrl;
+    const document_url = body.document_url || body.documentUrl;
+    const view_360_url = body.view_360_url || body.view360Url;
+    const owner_name = body.owner_name || body.ownerName;
+    const owner_phone = body.owner_phone || body.ownerPhone;
+    const description = body.description;
+    const amenities = body.amenities || [];
+    const assigned_agent_id = body.assigned_agent_id || body.assignedAgentId;
 
     // Validation
     if (!title || typeof title !== 'string' || !title.trim()) {
@@ -196,6 +197,7 @@ export async function POST(request: Request) {
         state,
         status,
         photos,
+        videos,
         video_url,
         document_url,
         view_360_url,
@@ -203,7 +205,7 @@ export async function POST(request: Request) {
         owner_phone,
         amenities,
         assigned_agent_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       RETURNING *
     `;
 
@@ -220,10 +222,11 @@ export async function POST(request: Request) {
       bathrooms ? Number(bathrooms) : null,
       location.trim(),
       address.trim(),
-      location.trim(),
-      'Maharashtra',
+      body.city?.trim() || location.trim(),
+      body.state?.trim() || 'Uttar Pradesh',
       status || 'available',
       JSON.stringify(Array.isArray(photos) ? photos : []),
+      JSON.stringify(Array.isArray(videos) ? videos : []),
       video_url?.trim() || null,
       document_url?.trim() || null,
       view_360_url?.trim() || null,

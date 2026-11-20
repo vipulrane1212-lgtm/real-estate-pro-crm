@@ -38,6 +38,7 @@ export async function GET(
         p.status,
         p.assigned_agent_id,
         COALESCE(p.photos, '[]'::jsonb) as photos,
+        COALESCE(p.videos, '[]'::jsonb) as videos,
         p.video_url,
         p.document_url,
         p.view_360_url,
@@ -72,6 +73,7 @@ export async function GET(
       price: Number(r.price),
       size_sqft: r.size_sqft ? Number(r.size_sqft) : null,
       photos: Array.isArray(r.photos) ? r.photos : [],
+      videos: Array.isArray(r.videos) ? r.videos : [],
       amenities: Array.isArray(r.amenities) ? r.amenities : [],
       assigned_agent: r.assigned_agent_id ? r.assigned_agent : null,
     };
@@ -103,28 +105,27 @@ export async function PUT(
 
     const existing = existingRows[0];
 
-    const {
-      title = existing.title,
-      description = existing.description,
-      property_type = existing.property_type,
-      listing_type = existing.listing_type,
-      price = existing.price,
-      size_sqft = existing.size_sqft,
-      bhk = existing.bhk,
-      bedrooms = existing.bedrooms,
-      bathrooms = existing.bathrooms,
-      location = existing.location,
-      address = existing.address,
-      status = existing.status,
-      photos = existing.photos,
-      video_url = existing.video_url,
-      document_url = existing.document_url,
-      view_360_url = existing.view_360_url,
-      owner_name = existing.owner_name,
-      owner_phone = existing.owner_phone,
-      amenities = existing.amenities,
-      assigned_agent_id = existing.assigned_agent_id,
-    } = body;
+    const title = body.title !== undefined ? body.title : existing.title;
+    const description = body.description !== undefined ? body.description : existing.description;
+    const property_type = body.property_type || body.propertyType || existing.property_type;
+    const listing_type = body.listing_type || body.listingType || existing.listing_type;
+    const price = body.price !== undefined ? body.price : existing.price;
+    const size_sqft = (body.size_sqft !== undefined ? body.size_sqft : body.sizeSqft) !== undefined ? (body.size_sqft ?? body.sizeSqft) : existing.size_sqft;
+    const bhk = body.bhk !== undefined ? body.bhk : existing.bhk;
+    const bedrooms = body.bedrooms !== undefined ? body.bedrooms : existing.bedrooms;
+    const bathrooms = body.bathrooms !== undefined ? body.bathrooms : existing.bathrooms;
+    const location = body.location !== undefined ? body.location : existing.location;
+    const address = body.address !== undefined ? body.address : existing.address;
+    const status = body.status !== undefined ? body.status : existing.status;
+    const photos = body.photos !== undefined ? body.photos : existing.photos;
+    const videos = body.videos !== undefined ? body.videos : existing.videos;
+    const video_url = (body.video_url !== undefined ? body.video_url : body.videoUrl) !== undefined ? (body.video_url ?? body.videoUrl) : existing.video_url;
+    const document_url = (body.document_url !== undefined ? body.document_url : body.documentUrl) !== undefined ? (body.document_url ?? body.documentUrl) : existing.document_url;
+    const view_360_url = (body.view_360_url !== undefined ? body.view_360_url : body.view360Url) !== undefined ? (body.view_360_url ?? body.view360Url) : existing.view_360_url;
+    const owner_name = (body.owner_name !== undefined ? body.owner_name : body.ownerName) !== undefined ? (body.owner_name ?? body.ownerName) : existing.owner_name;
+    const owner_phone = (body.owner_phone !== undefined ? body.owner_phone : body.ownerPhone) !== undefined ? (body.owner_phone ?? body.ownerPhone) : existing.owner_phone;
+    const amenities = body.amenities !== undefined ? body.amenities : existing.amenities;
+    const assigned_agent_id = (body.assigned_agent_id !== undefined ? body.assigned_agent_id : body.assignedAgentId) !== undefined ? (body.assigned_agent_id ?? body.assignedAgentId) : existing.assigned_agent_id;
 
     const updateSql = `
       UPDATE public.properties
@@ -142,15 +143,16 @@ export async function PUT(
         address = $11,
         status = $12,
         photos = $13,
-        video_url = $14,
-        document_url = $15,
-        view_360_url = $16,
-        owner_name = $17,
-        owner_phone = $18,
-        amenities = $19,
-        assigned_agent_id = $20,
+        videos = $14,
+        video_url = $15,
+        document_url = $16,
+        view_360_url = $17,
+        owner_name = $18,
+        owner_phone = $19,
+        amenities = $20,
+        assigned_agent_id = $21,
         updated_at = now()
-      WHERE id = $21
+      WHERE id = $22
       RETURNING *
     `;
 
@@ -168,6 +170,7 @@ export async function PUT(
       address.trim(),
       status,
       JSON.stringify(Array.isArray(photos) ? photos : []),
+      JSON.stringify(Array.isArray(videos) ? videos : []),
       video_url?.trim() || null,
       document_url?.trim() || null,
       view_360_url?.trim() || null,
