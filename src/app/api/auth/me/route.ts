@@ -75,6 +75,8 @@ export async function GET() {
       },
       profile,
       employee,
+      role: profile?.role || 'employee',
+      isAdmin: profile?.role === 'admin' || profile?.role === 'super_admin',
     });
   } catch (err: unknown) {
     console.error('Auth /me error:', err);

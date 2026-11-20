@@ -34,6 +34,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { LeadModal } from './lead-modal';
 import { LeadDetailDrawer } from './lead-detail-drawer';
 import { LeadImportModal } from './lead-import-modal';
+import { useAuth } from '@/modules/auth/auth-context';
 
 const STATUS_COLUMNS: { id: LeadStatus; label: string; headerColor: string; dotColor: string }[] = [
   { id: 'new', label: 'New Enquiries', headerColor: 'bg-blue-50 text-blue-800 border-blue-200', dotColor: 'bg-blue-500' },
@@ -101,8 +102,10 @@ function getSourceBadgeClass(src?: string): string {
 export function LeadManagement() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Array<{ id: string; designation: string; profile?: { full_name: string } }>>([]);
+  const { isAdmin: contextIsAdmin } = useAuth();
   const [assignedCounts, setAssignedCounts] = useState<{ unassigned: number; [id: string]: number }>({ unassigned: 0 });
   const [isAdmin, setIsAdmin] = useState(false);
+  const effectiveIsAdmin = isAdmin || Boolean(contextIsAdmin);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -183,7 +186,8 @@ export function LeadManagement() {
 
       if (authRes.ok) {
         const authData = await authRes.json();
-        setIsAdmin(authData.role === 'admin' || authData.role === 'super_admin');
+        const role = authData.role || authData.profile?.role;
+        setIsAdmin(role === 'admin' || role === 'super_admin' || Boolean(authData.isAdmin));
       }
 
       if (empRes.ok) {
@@ -451,7 +455,7 @@ export function LeadManagement() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Admin Demo Controls */}
-          {isAdmin && (
+          {effectiveIsAdmin && (
             <>
               <button
                 onClick={() => setIsResetConfirmOpen(true)}
@@ -878,7 +882,7 @@ export function LeadManagement() {
                           {/* Bottom: Contact & Agent */}
                           <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
                             <span className="font-mono">{lead.phone}</span>
-                            {isAdmin ? (
+                            {effectiveIsAdmin ? (
                               <select
                                 value={lead.assigned_to || ''}
                                 onClick={(e) => e.stopPropagation()}
@@ -1021,7 +1025,7 @@ export function LeadManagement() {
                         </select>
                       </td>
                       <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                        {isAdmin ? (
+                        {effectiveIsAdmin ? (
                           <select
                             value={lead.assigned_to || ''}
                             onChange={(e) => handleSingleAssign(lead.id, e.target.value)}
@@ -1057,7 +1061,7 @@ export function LeadManagement() {
                           >
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
-                          {isAdmin && (
+                          {effectiveIsAdmin && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -1091,7 +1095,7 @@ export function LeadManagement() {
           <div className="h-4 w-px bg-slate-700" />
 
           {/* Bulk Assign */}
-          {isAdmin && (
+          {effectiveIsAdmin && (
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] text-slate-400">Assign:</span>
               <select
@@ -1197,7 +1201,7 @@ export function LeadManagement() {
         }}
         initialLead={editingLead}
         employees={employees}
-        isAdmin={isAdmin}
+        isAdmin={effectiveIsAdmin}
       />
 
       {/* CSV Import Modal */}
@@ -1223,7 +1227,7 @@ export function LeadManagement() {
           setIsCreateModalOpen(true);
         }}
         employees={employees}
-        isAdmin={isAdmin}
+        isAdmin={effectiveIsAdmin}
       />
     </div>
   );
