@@ -93,6 +93,25 @@ export interface AuditLog {
   actor_profile?: Profile | null;
 }
 
+export type LeadStatus =
+  | 'new'
+  | 'contacted'
+  | 'follow_up'
+  | 'site_visit'
+  | 'negotiation'
+  | 'closed_won'
+  | 'closed_lost';
+
+export type LeadType = 'buy' | 'sell' | 'rent' | 'commercial';
+
+export type LeadSource =
+  | 'walk_in'
+  | 'reference'
+  | 'instagram'
+  | 'google'
+  | 'website'
+  | 'other';
+
 export interface Lead {
   id: string;
   lead_number: number;
@@ -100,53 +119,124 @@ export interface Lead {
   email: string | null;
   phone: string;
   alternate_phone: string | null;
-  status: 'new' | 'contacted' | 'interested' | 'site_visit_scheduled' | 'negotiation' | 'closed_won' | 'closed_lost';
-  source: 'website' | 'referral' | 'whatsapp' | 'direct_call' | 'portal' | 'walk_in';
+  status: LeadStatus;
+  source: LeadSource;
+  lead_type: LeadType;
   budget_min: number | null;
   budget_max: number | null;
   property_type: string | null;
+  location: string | null;
   preferred_location: string | null;
   requirement: string | null;
+  remarks: string | null;
   assigned_to: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  assigned_employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+      phone: string | null;
+    };
+  } | null;
 }
+
+export interface LeadHistoryItem {
+  id: string;
+  lead_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  action_type: 'created' | 'status_change' | 'note' | 'call' | 'visit' | 'follow_up' | 'assignment' | 'updated';
+  title: string;
+  description: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export type PropertyType =
+  | 'new_project'
+  | 'resale'
+  | 'rental'
+  | 'commercial'
+  | 'plot_land';
+
+export type PropertyStatus = 'available' | 'hold' | 'sold' | 'rented';
 
 export interface Property {
   id: string;
   property_code: string | null;
   title: string;
   description: string | null;
-  property_type: 'apartment' | 'villa' | 'commercial' | 'land' | 'penthouse';
+  property_type: PropertyType;
   listing_type: 'sale' | 'rent' | 'lease';
   price: number;
   size_sqft: number | null;
+  bhk: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  location: string | null;
   address: string;
   city: string;
   state: string;
   pincode: string | null;
-  status: 'available' | 'under_offer' | 'sold' | 'rented' | 'off_market';
+  status: PropertyStatus;
   assigned_agent_id: string | null;
   photos: string[];
+  video_url: string | null;
+  document_url: string | null;
+  view_360_url: string | null;
+  owner_name: string | null;
+  owner_phone: string | null;
   amenities: string[];
   created_at: string;
   updated_at: string;
+  assigned_agent?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+      phone: string | null;
+    };
+  } | null;
 }
+
+export type FollowUpType = 'call' | 'visit' | 'whatsapp' | 'meeting';
+export type FollowUpStatus = 'pending' | 'completed' | 'rescheduled' | 'cancelled';
 
 export interface FollowUp {
   id: string;
   lead_id: string;
   assigned_to: string;
   scheduled_at: string;
-  status: 'pending' | 'completed' | 'rescheduled' | 'cancelled';
+  status: FollowUpStatus;
+  follow_up_type: FollowUpType;
   remarks: string | null;
   outcome: string | null;
+  reminder_at: string | null;
+  snoozed_until: string | null;
+  acknowledged_at: string | null;
+  repeat_count: number;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+    status: string;
+    location: string | null;
+    requirement: string | null;
+    lead_type: string | null;
+  } | null;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
 }
 
 export interface SiteVisit {

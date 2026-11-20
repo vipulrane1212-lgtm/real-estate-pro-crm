@@ -11,12 +11,17 @@ export async function GET() {
     // Check authentication
     const localSession = await getSession();
     let userId = localSession?.userId;
+    let role = localSession?.role;
 
     if (!userId) {
       try {
         const supabase = await createClient();
         const { data } = await supabase.auth.getUser();
         userId = data.user?.id;
+        if (userId) {
+          const { data: p } = await supabase.from('profiles').select('role').eq('id', userId).single();
+          role = p?.role;
+        }
       } catch {
         // ignore
       }
@@ -30,17 +35,30 @@ export async function GET() {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      const [
-        totalLeadsRes,
-        newLeadsRes,
-        pendingFollowUpsRes,
-        siteVisitsTodayRes,
-        closedDealsRes,
-        availablePropertiesRes,
-      ] = await Promise.all([
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads'),
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE status = $1', ['new']),
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1', ['pending']),
+      // Check if employee
+      let employeeId: string | null = null;
+      if (role === 'employee') {
+        const empRows = await query<{ id: string }>('SELECT id FROM public.employees WHERE user_id = $1 LIMIT 1', [userId]);
+        employeeId = empRows[0]?.id || null;
+      }
+
+      let totalLeadsRes, newLeadsRes, pendingFollowUpsRes;
+
+      if (employeeId) {
+        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes] = await Promise.all([
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1', [employeeId]),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 AND status = $2', [employeeId, 'new']),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE assigned_to = $1 AND status = $2', [employeeId, 'pending']),
+        ]);
+      } else {
+        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes] = await Promise.all([
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads'),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE status = $1', ['new']),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1', ['pending']),
+        ]);
+      }
+
+      const [siteVisitsTodayRes, closedDealsRes, availablePropertiesRes] = await Promise.all([
         query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1', [today]),
         query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE status = $1', ['closed_won']),
         query<{ count: string }>('SELECT COUNT(*) as count FROM public.properties WHERE status = $1', ['available']),

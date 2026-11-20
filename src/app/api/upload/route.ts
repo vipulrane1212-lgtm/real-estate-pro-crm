@@ -1,20 +1,32 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    // Verify session via local cookie or Supabase
+    let userId: string | null = null;
+    const localSession = await getSession();
+    if (localSession?.userId) {
+      userId = localSession.userId;
+    } else {
+      try {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) userId = user.id;
+      } catch {
+        // fallback
+      }
+    }
 
-    // Verify session
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -34,39 +46,55 @@ export async function POST(request: Request) {
     // Generate unique sanitized filename
     const fileExt = file.name.split('.').pop() || 'dat';
     const timestamp = Date.now();
-    const cleanFileName = `${user.id}/${timestamp}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const safeBaseName = `${timestamp}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const cleanFileName = `${userId}/${safeBaseName}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const adminSupabase = createAdminClient();
+    // Try Supabase Storage first if configured
+    let uploadedViaSupabase = false;
+    let publicUrl: string | null = null;
 
-    const { error: uploadError } = await adminSupabase.storage
-      .from(bucket)
-      .upload(cleanFileName, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (supabaseUrl && !supabaseUrl.includes('placeholder') && !supabaseUrl.includes('localhost:54321')) {
+      try {
+        const adminSupabase = createAdminClient();
+        const { error: uploadError } = await adminSupabase.storage
+          .from(bucket)
+          .upload(cleanFileName, buffer, {
+            contentType: file.type,
+            upsert: true,
+          });
 
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError);
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+        if (!uploadError) {
+          uploadedViaSupabase = true;
+          if (bucket === 'company-assets' || bucket === 'property-photos') {
+            const { data: urlData } = adminSupabase.storage
+              .from(bucket)
+              .getPublicUrl(cleanFileName);
+            publicUrl = urlData.publicUrl;
+          }
+        }
+      } catch (sbErr) {
+        console.warn('Supabase upload skipped or failed, falling back to local filesystem:', sbErr);
+      }
     }
 
-    // For company-assets (public), get public URL; for private buckets return file path
-    let publicUrl: string | null = null;
-    if (bucket === 'company-assets') {
-      const { data: urlData } = adminSupabase.storage
-        .from(bucket)
-        .getPublicUrl(cleanFileName);
-      publicUrl = urlData.publicUrl;
+    // Local filesystem storage fallback
+    if (!uploadedViaSupabase) {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', bucket, userId);
+      await fs.mkdir(uploadDir, { recursive: true });
+      const localFilePath = path.join(uploadDir, safeBaseName);
+      await fs.writeFile(localFilePath, buffer);
+      publicUrl = `/uploads/${bucket}/${userId}/${safeBaseName}`;
     }
 
     return NextResponse.json({
       success: true,
       bucket,
       filePath: cleanFileName,
-      publicUrl: publicUrl || `/api/storage/${bucket}/${cleanFileName}`,
+      publicUrl: publicUrl || `/uploads/${bucket}/${cleanFileName}`,
     });
   } catch (err: unknown) {
     console.error('Upload API error:', err);

@@ -124,7 +124,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
               Welcome back, {userName || 'Agent'}
             </h1>
             <Badge variant="gold" className="text-[10px]">
-              Foundation Phase 1
+              Phase 2 Active
             </Badge>
           </div>
           <p className="mt-1 text-sm text-slate-500">
