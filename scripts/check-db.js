@@ -5,7 +5,7 @@ const pool = new Pool({
 });
 
 async function run() {
-  const tables = ['leads', 'properties', 'follow_ups', 'audit_logs', 'employees'];
+  const tables = ['calls', 'site_visits', 'deals', 'brokerage', 'documents', 'whatsapp_messages'];
   for (const t of tables) {
     const res = await pool.query(
       `SELECT column_name, data_type, is_nullable, column_default 
@@ -14,9 +14,9 @@ async function run() {
        ORDER BY ordinal_position`,
       [t]
     );
-    console.log(`\n=== TABLE: ${t} ===`);
+    console.log(`\n=== TABLE: ${t} (${res.rows.length} columns) ===`);
     res.rows.forEach(r => {
-      console.log(`  ${r.column_name}: ${r.data_type} (nullable: ${r.is_nullable}, default: ${r.column_default})`);
+      console.log(`  ${r.column_name}: ${r.data_type}`);
     });
   }
   await pool.end();

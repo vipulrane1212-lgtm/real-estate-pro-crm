@@ -41,17 +41,17 @@ export function Sidebar({
 
   const navigationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Leads', href: '/leads', icon: Users, badge: 'Phase 2' },
-    { name: 'Properties', href: '/properties', icon: Building2, badge: 'Phase 2' },
-    { name: 'Follow-ups', href: '/follow-ups', icon: CalendarClock, badge: 'Phase 2' },
-    { name: 'Site Visits', href: '/site-visits', icon: MapPin, badge: 'Phase 2' },
-    { name: 'Documents', href: '/documents', icon: FileText, badge: 'Phase 2' },
-    { name: 'Calls', href: '/calls', icon: PhoneCall, badge: 'Phase 2' },
-    { name: 'WhatsApp', href: '/whatsapp', icon: MessageSquare, badge: 'Phase 2' },
+    { name: 'Leads', href: '/leads', icon: Users },
+    { name: 'Properties', href: '/properties', icon: Building2 },
+    { name: 'Follow-ups', href: '/follow-ups', icon: CalendarClock },
+    { name: 'Site Visits', href: '/site-visits', icon: MapPin },
+    { name: 'Calls', href: '/calls', icon: PhoneCall },
+    { name: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
+    { name: 'Brokerage & Deals', href: '/brokerage', icon: Percent },
+    { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Documents', href: '/documents', icon: FileText, badge: 'Phase 4' },
+    { name: 'Accounts', href: '/accounts', icon: Receipt, badge: 'Phase 4' },
     { name: 'Employees', href: '/employees', icon: UserCheck, adminOnly: true },
-    { name: 'Brokerage', href: '/brokerage', icon: Percent, badge: 'Phase 2' },
-    { name: 'Accounts', href: '/accounts', icon: Receipt, badge: 'Phase 2' },
-    { name: 'Reports', href: '/reports', icon: BarChart3, badge: 'Phase 2' },
     { name: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
   ];
 
@@ -163,11 +163,11 @@ export function Sidebar({
         <div className="border-t border-slate-200 p-4 bg-slate-50">
           <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 p-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
-              <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-              Phase 1 Active
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Phase 3 Active
             </div>
             <p className="mt-1 text-[11px] text-amber-800/80 leading-relaxed">
-              Auth, Security, RBAC & Core Architecture. Phase 2 modules are mapped.
+              Leads, Properties, Calls, WhatsApp, Visits, Deals & BI Reports are active.
             </p>
           </div>
         </div>

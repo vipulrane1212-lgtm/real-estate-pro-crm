@@ -239,57 +239,140 @@ export interface FollowUp {
   } | null;
 }
 
-export interface SiteVisit {
-  id: string;
-  lead_id: string;
-  property_id: string;
-  assigned_to: string;
-  visit_date: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
-  feedback: string | null;
-  client_interest_level: 'hot' | 'warm' | 'cold' | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DocumentItem {
-  id: string;
-  title: string;
-  file_url: string;
-  file_type: string | null;
-  file_size: number | null;
-  bucket_name: string;
-  lead_id: string | null;
-  property_id: string | null;
-  uploaded_by: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type CallOutcome = 'connected' | 'not_answered' | 'busy' | 'wrong_number';
 
 export interface CallRecord {
   id: string;
   lead_id: string;
   employee_id: string;
   call_type: 'incoming' | 'outgoing' | 'missed';
+  outcome: CallOutcome;
   duration_seconds: number;
+  client_phone: string | null;
   recording_url: string | null;
   notes: string | null;
   call_time: string;
+  provider_call_id: string | null;
   created_at: string;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+  } | null;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
+}
+
+export type WhatsAppTemplateName =
+  | 'intro'
+  | 'property_share'
+  | 'site_visit_reminder'
+  | 'follow_up'
+  | 'festival_greeting'
+  | 'custom';
+
+export interface WhatsAppMessage {
+  id: string;
+  lead_id: string;
+  employee_id: string;
+  recipient_phone: string;
+  template_name: WhatsAppTemplateName;
+  message_text: string;
+  status: 'sent_via_wa_me' | 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
+  provider_message_id: string | null;
+  created_at: string;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+  } | null;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
+}
+
+export type SiteVisitStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+export type SiteVisitFeedback = 'interested' | 'not_interested' | 'negotiating' | null;
+
+export interface SiteVisit {
+  id: string;
+  lead_id: string;
+  property_id: string;
+  assigned_to: string;
+  visit_date: string;
+  status: SiteVisitStatus;
+  feedback: SiteVisitFeedback;
+  outcome_note: string | null;
+  cancellation_reason: string | null;
+  client_interest_level: 'hot' | 'warm' | 'cold' | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+    location: string | null;
+  } | null;
+  property?: {
+    id: string;
+    title: string;
+    location: string | null;
+    price: number;
+    bhk: string | null;
+  } | null;
+  assigned_employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+      phone: string | null;
+    };
+  } | null;
 }
 
 export interface Deal {
   id: string;
+  deal_number: number;
   lead_id: string;
   property_id: string;
   employee_id: string;
   deal_value: number;
   commission_amount: number;
+  brokerage_percentage: number;
   deal_date: string;
+  closed_date: string;
   status: 'in_progress' | 'closed_won' | 'cancelled';
   notes: string | null;
   created_at: string;
   updated_at: string;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+  } | null;
+  property?: {
+    id: string;
+    title: string;
+    location: string | null;
+    price: number;
+  } | null;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
 }
 
 export interface BrokerageRecord {
@@ -299,10 +382,20 @@ export interface BrokerageRecord {
   total_brokerage: number;
   paid_brokerage: number;
   pending_brokerage: number;
+  brokerage_percentage: number;
   payment_status: 'unpaid' | 'partially_paid' | 'fully_paid';
   payment_date: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
+  deal?: Deal | null;
+  agent?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
 }
 
 export interface ExpenseRecord {

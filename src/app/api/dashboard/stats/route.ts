@@ -42,25 +42,27 @@ export async function GET() {
         employeeId = empRows[0]?.id || null;
       }
 
-      let totalLeadsRes, newLeadsRes, pendingFollowUpsRes;
+      let totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes;
 
       if (employeeId) {
-        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes] = await Promise.all([
+        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes] = await Promise.all([
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1', [employeeId]),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 AND status = $2', [employeeId, 'new']),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE assigned_to = $1 AND status = $2', [employeeId, 'pending']),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE assigned_to = $1 AND DATE(visit_date) = $2', [employeeId, today]),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE employee_id = $1 AND status = $2', [employeeId, 'closed_won']),
         ]);
       } else {
-        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes] = await Promise.all([
+        [totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes] = await Promise.all([
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads'),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE status = $1', ['new']),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1', ['pending']),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1', [today]),
+          query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE status = $1', ['closed_won']),
         ]);
       }
 
-      const [siteVisitsTodayRes, closedDealsRes, availablePropertiesRes] = await Promise.all([
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1', [today]),
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE status = $1', ['closed_won']),
+      const [availablePropertiesRes] = await Promise.all([
         query<{ count: string }>('SELECT COUNT(*) as count FROM public.properties WHERE status = $1', ['available']),
       ]);
 

@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Lead, LeadHistoryItem, LeadStatus, Property } from '@/lib/supabase/types';
 import { MatchedPropertyResult } from '@/app/api/properties/matched/route';
 import { CreateFollowUpModal } from '@/modules/follow-ups/create-follow-up-modal';
+import { LogCallModal } from '@/modules/calls/log-call-modal';
+import { WhatsAppModal } from '@/modules/whatsapp/whatsapp-modal';
+import { SiteVisitModal } from '@/modules/site-visits/site-visit-modal';
+import { DealModal } from '@/modules/deals/deal-modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -91,6 +95,12 @@ export function LeadDetailDrawer({
 
   // Follow-up modal
   const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+
+  // Phase 3 modals
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [isSiteVisitModalOpen, setIsSiteVisitModalOpen] = useState(false);
+  const [isDealModalOpen, setIsDealModalOpen] = useState(false);
 
   // Status updating
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -240,26 +250,16 @@ export function LeadDetailDrawer({
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <a
                 href={`tel:${lead.phone}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-700 shadow-sm hover:border-amber-400 hover:text-amber-700 transition"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 font-medium text-slate-700 shadow-xs hover:border-amber-400 hover:text-amber-700 transition"
               >
                 <Phone className="h-3.5 w-3.5 text-emerald-600" />
                 {lead.phone}
               </a>
 
-              <a
-                href={waClientUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-medium text-emerald-800 shadow-sm hover:bg-emerald-100 transition"
-              >
-                <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
-                WhatsApp
-              </a>
-
               {lead.email && (
                 <a
                   href={`mailto:${lead.email}`}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 shadow-sm hover:text-slate-900"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 shadow-xs hover:text-slate-900"
                 >
                   <Mail className="h-3.5 w-3.5 text-slate-400" />
                   {lead.email}
@@ -267,15 +267,57 @@ export function LeadDetailDrawer({
               )}
             </div>
 
-            {/* Schedule Follow-up button */}
-            <Button
-              size="sm"
-              onClick={() => setIsFollowUpModalOpen(true)}
-              className="bg-amber-600 text-white hover:bg-amber-700 shadow-sm gap-1.5"
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              Schedule Follow-up
-            </Button>
+            {/* Quick Actions Bar */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCallModalOpen(true)}
+                className="border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 text-slate-700 gap-1 text-xs"
+              >
+                <Phone className="h-3.5 w-3.5 text-blue-600" />
+                Call & Log
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsWhatsAppModalOpen(true)}
+                className="border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 text-slate-700 gap-1 text-xs"
+              >
+                <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+                WhatsApp
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSiteVisitModalOpen(true)}
+                className="border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/50 text-slate-700 gap-1 text-xs"
+              >
+                <MapPin className="h-3.5 w-3.5 text-purple-600" />
+                Site Visit
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFollowUpModalOpen(true)}
+                className="border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 text-slate-700 gap-1 text-xs"
+              >
+                <Calendar className="h-3.5 w-3.5 text-amber-600" />
+                Follow-up
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={() => setIsDealModalOpen(true)}
+                className="bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs gap-1 text-xs font-semibold"
+              >
+                <TrendingUp className="h-3.5 w-3.5" />
+                Close Deal
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -667,6 +709,59 @@ export function LeadDetailDrawer({
         initialLeadName={lead.full_name}
         leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
         employees={employees}
+      />
+
+      {/* Call modal mounted */}
+      <LogCallModal
+        isOpen={isCallModalOpen}
+        onClose={() => setIsCallModalOpen(false)}
+        onSuccess={() => {
+          setIsCallModalOpen(false);
+          loadHistory(lead.id);
+        }}
+        leadId={lead.id}
+        clientName={lead.full_name}
+        clientPhone={lead.phone}
+      />
+
+      {/* WhatsApp modal mounted */}
+      <WhatsAppModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        onSuccess={() => {
+          setIsWhatsAppModalOpen(false);
+          loadHistory(lead.id);
+        }}
+        leadId={lead.id}
+        clientName={lead.full_name}
+        clientPhone={lead.phone}
+        clientLocation={lead.location || lead.preferred_location || undefined}
+        clientRequirement={lead.requirement || undefined}
+      />
+
+      {/* Site visit modal mounted */}
+      <SiteVisitModal
+        isOpen={isSiteVisitModalOpen}
+        onClose={() => setIsSiteVisitModalOpen(false)}
+        onSuccess={() => {
+          setIsSiteVisitModalOpen(false);
+          loadHistory(lead.id);
+        }}
+        initialLeadId={lead.id}
+        leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
+      />
+
+      {/* Deal modal mounted */}
+      <DealModal
+        isOpen={isDealModalOpen}
+        onClose={() => setIsDealModalOpen(false)}
+        onSuccess={() => {
+          setIsDealModalOpen(false);
+          loadHistory(lead.id);
+          onLeadUpdated({ ...lead, status: 'closed_won' });
+        }}
+        initialLeadId={lead.id}
+        leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
       />
     </>
   );
