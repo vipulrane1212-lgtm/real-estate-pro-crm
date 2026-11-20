@@ -23,6 +23,8 @@ import {
   CheckSquare,
   Square,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   UserCheck,
 } from 'lucide-react';
 import { Lead, LeadStatus, LeadType, LeadSource } from '@/lib/supabase/types';
@@ -132,6 +134,14 @@ export function LeadManagement() {
 
   // Drag and drop state for kanban
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
+  const kanbanRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollKanban = (direction: 'left' | 'right') => {
+    if (kanbanRef.current) {
+      const scrollAmount = direction === 'left' ? -350 : 350;
+      kanbanRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -311,6 +321,24 @@ export function LeadManagement() {
     }
   };
 
+  const handleSingleAssign = async (leadId: string, employeeId: string) => {
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assigned_to: employeeId || null }),
+      });
+      if (res.ok) {
+        await fetchLeads();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to assign lead');
+      }
+    } catch (e) {
+      console.error('Single assign error', e);
+    }
+  };
+
   const handleBulkStatus = async (status: LeadStatus) => {
     if (selectedLeadIds.size === 0) return;
     setIsBulkLoading(true);
@@ -404,7 +432,7 @@ export function LeadManagement() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 w-full min-w-0">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -501,6 +529,28 @@ export function LeadManagement() {
               <List className="h-4 w-4" />
             </button>
           </div>
+
+          {/* Kanban horizontal navigation scroll buttons */}
+          {viewMode === 'kanban' && (
+            <div className="flex items-center rounded-lg border border-slate-300 bg-white p-0.5">
+              <button
+                type="button"
+                onClick={() => scrollKanban('left')}
+                className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                title="Scroll Stages Left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollKanban('right')}
+                className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                title="Scroll Stages Right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
 
           {/* Add Lead */}
           <Button
@@ -709,7 +759,10 @@ export function LeadManagement() {
         />
       ) : viewMode === 'kanban' ? (
         /* KANBAN BOARD */
-        <div className="flex gap-4 overflow-x-auto pb-4 pt-1">
+        <div
+          ref={kanbanRef}
+          className="flex gap-4 overflow-x-auto pb-6 pt-1 w-full min-w-0 scroll-smooth"
+        >
           {STATUS_COLUMNS.map((col) => {
             const columnLeads = leads.filter((l) => l.status === col.id);
 
@@ -718,7 +771,7 @@ export function LeadManagement() {
                 key={col.id}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, col.id)}
-                className="flex w-80 shrink-0 flex-col rounded-xl border border-slate-200 bg-slate-100/60 shadow-sm"
+                className="flex w-[295px] shrink-0 flex-col rounded-xl border border-slate-200 bg-slate-100/60 shadow-sm"
               >
                 {/* Column Header */}
                 <div className={`flex items-center justify-between rounded-t-xl border-b p-3 ${col.headerColor}`}>
@@ -825,9 +878,29 @@ export function LeadManagement() {
                           {/* Bottom: Contact & Agent */}
                           <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
                             <span className="font-mono">{lead.phone}</span>
-                            <span className="font-medium text-slate-600 truncate max-w-[120px]">
-                              {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
-                            </span>
+                            {isAdmin ? (
+                              <select
+                                value={lead.assigned_to || ''}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => handleSingleAssign(lead.id, e.target.value)}
+                                className={`rounded px-1.5 py-0.5 text-[11px] font-semibold cursor-pointer max-w-[140px] truncate ${
+                                  !lead.assigned_to
+                                    ? 'border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-bold'
+                                    : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                }`}
+                              >
+                                <option value="">+ Assign Agent</option>
+                                {employees.map((emp) => (
+                                  <option key={emp.id} value={emp.id}>
+                                    {emp.profile?.full_name || 'Agent'}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span className="font-medium text-slate-600 truncate max-w-[120px]">
+                                {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -947,8 +1020,29 @@ export function LeadManagement() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-3 py-3 text-slate-600">
-                        {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        {isAdmin ? (
+                          <select
+                            value={lead.assigned_to || ''}
+                            onChange={(e) => handleSingleAssign(lead.id, e.target.value)}
+                            className={`rounded px-2 py-1 text-[11px] font-semibold cursor-pointer ${
+                              !lead.assigned_to
+                                ? 'border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-bold'
+                                : 'border border-slate-200 bg-white text-slate-700'
+                            }`}
+                          >
+                            <option value="">-- Unassigned (Assign) --</option>
+                            {employees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.profile?.full_name || 'Agent'}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-slate-600">
+                            {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">

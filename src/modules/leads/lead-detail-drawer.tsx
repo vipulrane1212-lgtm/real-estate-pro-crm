@@ -35,6 +35,7 @@ import {
   Edit,
   ChevronRight,
   TrendingUp,
+  UserCheck,
 } from 'lucide-react';
 
 interface LeadDetailDrawerProps {
@@ -109,6 +110,7 @@ export function LeadDetailDrawer({
 
   // Status updating
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     if (isOpen && lead) {
@@ -181,6 +183,37 @@ export function LeadDetailDrawer({
       console.error('Failed to update status', e);
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleAssignLead = async (employeeId: string) => {
+    if (!lead || isAssigning) return;
+    setIsAssigning(true);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assigned_to: employeeId || null }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lead) {
+          onLeadUpdated(data.lead);
+        } else {
+          onLeadUpdated({
+            ...lead,
+            assigned_to: employeeId || null,
+          });
+        }
+        loadHistory(lead.id);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to assign lead');
+      }
+    } catch (e) {
+      console.error('Failed to assign lead', e);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -290,6 +323,26 @@ export function LeadDetailDrawer({
 
             {/* Quick Actions Bar */}
             <div className="flex flex-wrap items-center gap-1.5">
+              {isAdmin && (
+                <div className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs shadow-2xs">
+                  <UserCheck className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                  <span className="font-semibold text-amber-900">Assign:</span>
+                  <select
+                    value={lead.assigned_to || ''}
+                    onChange={(e) => handleAssignLead(e.target.value)}
+                    disabled={isAssigning}
+                    className="rounded border border-amber-300 bg-white px-2 py-0.5 text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+                  >
+                    <option value="">-- Unassigned (Pool) --</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.profile?.full_name || 'Agent'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -391,9 +444,27 @@ export function LeadDetailDrawer({
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-2.5">
             <span className="text-[10px] font-semibold uppercase text-slate-400">Assigned Agent</span>
-            <p className="mt-1 font-semibold text-slate-800 truncate">
-              {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
-            </p>
+            {isAdmin ? (
+              <div className="mt-1">
+                <select
+                  value={lead.assigned_to || ''}
+                  onChange={(e) => handleAssignLead(e.target.value)}
+                  disabled={isAssigning}
+                  className="w-full rounded border border-amber-300 bg-amber-50/70 px-2 py-1 text-xs font-semibold text-amber-950 focus:border-amber-500 focus:outline-none cursor-pointer"
+                >
+                  <option value="">-- Unassigned (Click to Assign) --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.profile?.full_name || 'Agent'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <p className="mt-1 font-semibold text-slate-800 truncate">
+                {lead.assigned_employee?.profile?.full_name || 'Unassigned'}
+              </p>
+            )}
           </div>
         </div>
 
