@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { query } from '@/lib/db';
+import { Employee, Profile } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
 
-// Default permissions for new employees
 const DEFAULT_PERMISSIONS = {
   leads: { view: true, create: true, edit: true, delete: false },
   properties: { view: true, create: false, edit: false, delete: false },
@@ -18,91 +19,106 @@ const DEFAULT_PERMISSIONS = {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const session = await getSession();
+    let role = session?.role;
 
-    // Verify session
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!role) {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        role = p?.role;
+      }
     }
 
-    // Verify admin role
-    const { data: callerProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!callerProfile || !['super_admin', 'admin'].includes(callerProfile.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
+    if (!role || !['super_admin', 'admin'].includes(role)) {
+      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Fetch employees with joined profiles
-    const { data: employees, error: fetchError } = await supabase
-      .from('employees')
-      .select(`
-        id,
-        user_id,
-        designation,
-        joining_date,
-        permissions,
-        manager_id,
-        is_active,
-        created_at,
-        updated_at,
-        profile:profiles(id, full_name, phone, role, is_active)
-      `)
-      .order('created_at', { ascending: false });
+    // Fetch employees with profile
+    try {
+      const rows = await query<
+        Employee & {
+          profile_id: string;
+          profile_name: string;
+          profile_phone: string | null;
+          profile_role: Profile['role'];
+          profile_is_active: boolean;
+        }
+      >(`
+        SELECT 
+          e.id,
+          e.user_id,
+          e.designation,
+          e.joining_date::text,
+          e.permissions,
+          e.manager_id,
+          e.is_active,
+          e.created_at,
+          e.updated_at,
+          p.id as profile_id,
+          p.full_name as profile_name,
+          p.phone as profile_phone,
+          p.role as profile_role,
+          p.is_active as profile_is_active
+        FROM public.employees e
+        LEFT JOIN public.profiles p ON e.user_id = p.id
+        ORDER BY e.created_at DESC
+      `);
 
-    if (fetchError) {
-      console.error('Error fetching employees:', fetchError);
-      return NextResponse.json(
-        { error: fetchError.message },
-        { status: 500 }
-      );
+      const employees: Employee[] = rows.map((r) => ({
+        id: r.id,
+        user_id: r.user_id,
+        designation: r.designation,
+        joining_date: r.joining_date,
+        permissions: r.permissions,
+        manager_id: r.manager_id,
+        is_active: r.is_active,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        profile: {
+          id: r.profile_id,
+          full_name: r.profile_name,
+          phone: r.profile_phone,
+          role: r.profile_role,
+          is_active: r.profile_is_active,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+        },
+      }));
+
+      return NextResponse.json({ employees });
+    } catch {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from('employees')
+        .select(`*, profile:profiles(*)`)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return NextResponse.json({ employees: data || [] });
     }
-
-    return NextResponse.json({ employees: employees || [] });
   } catch (err: unknown) {
     console.error('Employees GET error:', err);
-    return NextResponse.json(
-      { error: 'Failed to fetch employee roster' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch employees' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    const session = await getSession();
+    let role = session?.role;
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!role) {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        role = p?.role;
+      }
     }
 
-    const { data: callerProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!callerProfile || !['super_admin', 'admin'].includes(callerProfile.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
+    if (!role || !['super_admin', 'admin'].includes(role)) {
+      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -115,7 +131,7 @@ export async function POST(request: Request) {
       joiningDate,
       managerId,
       permissions,
-      role = 'employee',
+      role: empRole = 'employee',
     } = body;
 
     if (!email || !password || !fullName || !designation) {
@@ -125,87 +141,63 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create user in Supabase auth via Service Role Admin Client
-    const adminSupabase = createAdminClient();
-
-    const { data: newAuthUser, error: createAuthError } =
-      await adminSupabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-          phone: phone || null,
-          role,
-        },
-      });
-
-    if (createAuthError || !newAuthUser.user) {
-      return NextResponse.json(
-        { error: createAuthError?.message || 'Failed to create authentication account' },
-        { status: 400 }
+    // Insert user into local Postgres auth.users, profiles, and employees
+    try {
+      const userRes = await query<{ id: string }>(
+        `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
+         VALUES ($1, crypt($2, gen_salt('bf')), $3)
+         ON CONFLICT (email) DO UPDATE SET encrypted_password = crypt($2, gen_salt('bf'))
+         RETURNING id`,
+        [
+          email.toLowerCase().trim(),
+          password,
+          JSON.stringify({ full_name: fullName, phone, role: empRole }),
+        ]
       );
-    }
 
-    const newUserId = newAuthUser.user.id;
+      const newUserId = userRes[0].id;
 
-    // Ensure profile is upserted correctly
-    const { error: profileError } = await adminSupabase
-      .from('profiles')
-      .upsert({
+      await query(
+        `INSERT INTO public.profiles (id, full_name, phone, role, is_active)
+         VALUES ($1, $2, $3, $4, true)
+         ON CONFLICT (id) DO UPDATE SET full_name = $2, phone = $3, role = $4, is_active = true`,
+        [newUserId, fullName, phone || null, empRole]
+      );
+
+      const empRes = await query<Employee>(
+        `INSERT INTO public.employees (user_id, designation, joining_date, manager_id, permissions, is_active)
+         VALUES ($1, $2, $3, $4, $5, true)
+         RETURNING *`,
+        [
+          newUserId,
+          designation,
+          joiningDate || new Date().toISOString().split('T')[0],
+          managerId || null,
+          JSON.stringify(permissions || DEFAULT_PERMISSIONS),
+        ]
+      );
+
+      const newEmployee = empRes[0];
+      newEmployee.profile = {
         id: newUserId,
         full_name: fullName,
         phone: phone || null,
-        role,
+        role: empRole,
         is_active: true,
-      });
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
-    }
-
-    // Insert employee record
-    const { data: newEmployee, error: employeeError } = await adminSupabase
-      .from('employees')
-      .insert({
-        user_id: newUserId,
-        designation,
-        joining_date: joiningDate || new Date().toISOString().split('T')[0],
-        manager_id: managerId || null,
-        permissions: permissions || DEFAULT_PERMISSIONS,
-        is_active: true,
-      })
-      .select(`
-        id,
-        user_id,
-        designation,
-        joining_date,
-        permissions,
-        manager_id,
-        is_active,
-        created_at,
-        updated_at,
-        profile:profiles(id, full_name, phone, role, is_active)
-      `)
-      .single();
-
-    if (employeeError) {
-      console.error('Employee creation error:', employeeError);
+      return NextResponse.json({ success: true, employee: newEmployee });
+    } catch (err: unknown) {
+      console.error('Error creating employee in Postgres:', err);
       return NextResponse.json(
-        { error: employeeError.message },
+        { error: err instanceof Error ? err.message : 'Database error creating employee' },
         { status: 400 }
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      employee: newEmployee,
-    });
   } catch (err: unknown) {
     console.error('Employees POST error:', err);
-    return NextResponse.json(
-      { error: 'An error occurred while creating employee' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create employee' }, { status: 500 });
   }
 }

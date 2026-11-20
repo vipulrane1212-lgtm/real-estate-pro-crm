@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { query } from '@/lib/db';
+import { Employee } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,133 +12,58 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
 
-    // Verify session
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const session = await getSession();
+    let role = session?.role;
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!role) {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        role = p?.role;
+      }
     }
 
-    // Verify admin role
-    const { data: callerProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!callerProfile || !['super_admin', 'admin'].includes(callerProfile.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
+    if (!role || !['super_admin', 'admin'].includes(role)) {
+      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const body = await request.json();
-    const {
-      isActive,
-      designation,
-      permissions,
-      managerId,
-      fullName,
-      phone,
-      role,
-    } = body;
+    const { isActive, designation, permissions, managerId } = body;
 
-    const adminSupabase = createAdminClient();
-
-    // First fetch employee to know the user_id
-    const { data: existingEmployee, error: findError } = await adminSupabase
-      .from('employees')
-      .select('user_id')
-      .eq('id', id)
-      .single();
-
-    if (findError || !existingEmployee) {
-      return NextResponse.json(
-        { error: 'Employee not found' },
-        { status: 404 }
-      );
+    // Fetch existing employee to get user_id
+    const existing = await query<Employee>('SELECT * FROM public.employees WHERE id = $1', [id]);
+    if (!existing.length) {
+      return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }
 
-    // Build update object for employees
-    const employeeUpdates: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    const emp = existing[0];
+    const newActive = typeof isActive === 'boolean' ? isActive : emp.is_active;
+    const newDesignation = designation !== undefined ? designation : emp.designation;
+    const newPermissions = permissions !== undefined ? JSON.stringify(permissions) : JSON.stringify(emp.permissions);
+    const newManager = managerId !== undefined ? managerId : emp.manager_id;
 
+    // Update employees table
+    const updated = await query<Employee>(
+      `UPDATE public.employees
+       SET is_active = $1, designation = $2, permissions = $3, manager_id = $4, updated_at = now()
+       WHERE id = $5
+       RETURNING *`,
+      [newActive, newDesignation, newPermissions, newManager, id]
+    );
+
+    // Sync is_active to profiles
     if (typeof isActive === 'boolean') {
-      employeeUpdates.is_active = isActive;
-    }
-    if (designation !== undefined) {
-      employeeUpdates.designation = designation;
-    }
-    if (permissions !== undefined) {
-      employeeUpdates.permissions = permissions;
-    }
-    if (managerId !== undefined) {
-      employeeUpdates.manager_id = managerId || null;
+      await query('UPDATE public.profiles SET is_active = $1, updated_at = now() WHERE id = $2', [
+        isActive,
+        emp.user_id,
+      ]);
     }
 
-    const { data: updatedEmployee, error: updateEmpError } = await adminSupabase
-      .from('employees')
-      .update(employeeUpdates)
-      .eq('id', id)
-      .select(`
-        id,
-        user_id,
-        designation,
-        joining_date,
-        permissions,
-        manager_id,
-        is_active,
-        created_at,
-        updated_at,
-        profile:profiles(id, full_name, phone, role, is_active)
-      `)
-      .single();
-
-    if (updateEmpError) {
-      return NextResponse.json(
-        { error: updateEmpError.message },
-        { status: 400 }
-      );
-    }
-
-    // If profile fields were supplied or active status changed, update profile as well
-    const profileUpdates: Record<string, unknown> = {};
-    if (typeof isActive === 'boolean') {
-      profileUpdates.is_active = isActive;
-    }
-    if (fullName !== undefined) {
-      profileUpdates.full_name = fullName;
-    }
-    if (phone !== undefined) {
-      profileUpdates.phone = phone;
-    }
-    if (role !== undefined) {
-      profileUpdates.role = role;
-    }
-
-    if (Object.keys(profileUpdates).length > 0) {
-      await adminSupabase
-        .from('profiles')
-        .update(profileUpdates)
-        .eq('id', existingEmployee.user_id);
-    }
-
-    return NextResponse.json({
-      success: true,
-      employee: updatedEmployee,
-    });
+    return NextResponse.json({ success: true, employee: updated[0] });
   } catch (err: unknown) {
     console.error('Employee PATCH error:', err);
-    return NextResponse.json(
-      { error: 'Failed to update employee' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update employee' }, { status: 500 });
   }
 }
