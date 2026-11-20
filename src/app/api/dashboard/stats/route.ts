@@ -6,7 +6,7 @@ import { DashboardStats } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Check authentication
     const localSession = await getSession();
@@ -31,6 +31,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const includeDemo = searchParams.get('include_demo') === 'true' || searchParams.get('show_demo') === 'true';
+
+    // Demo filter for leads and follow-ups
+    const leadDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
+    const leadWhereDemo = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const followUpDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
+    const followUpWhereDemo = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+
     // Query real PostgreSQL counts
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -46,25 +55,37 @@ export async function GET() {
 
       if (employeeId) {
         [totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes] = await Promise.all([
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1', [employeeId]),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 AND status = $2', [employeeId, 'new']),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE assigned_to = $1 AND status = $2', [employeeId, 'pending']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 ${leadDemoCond}`, [employeeId]),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 AND status = $2 ${leadDemoCond}`, [employeeId, 'new']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.follow_ups WHERE assigned_to = $1 AND status = $2 ${followUpDemoCond}`, [employeeId, 'pending']),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE assigned_to = $1 AND DATE(visit_date) = $2', [employeeId, today]),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE employee_id = $1 AND status = $2', [employeeId, 'closed_won']),
         ]);
       } else {
         [totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes] = await Promise.all([
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads'),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.leads WHERE status = $1', ['new']),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1', ['pending']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads ${leadWhereDemo}`),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE status = $1 ${leadDemoCond}`, ['new']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1 ${followUpDemoCond}`, ['pending']),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1', [today]),
           query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE status = $1', ['closed_won']),
         ]);
       }
 
-      const [availablePropertiesRes] = await Promise.all([
+      const [availablePropertiesRes, leadsBySourceRows] = await Promise.all([
         query<{ count: string }>('SELECT COUNT(*) as count FROM public.properties WHERE status = $1', ['available']),
+        query<{ source: string; count: string }>(
+          `SELECT LOWER(source) as source, COUNT(*)::text as count 
+           FROM public.leads 
+           ${leadWhereDemo}
+           GROUP BY LOWER(source)
+           ORDER BY COUNT(*) DESC`
+        ),
       ]);
+
+      const leadsBySource = leadsBySourceRows.map((r) => ({
+        source: r.source,
+        count: parseInt(r.count, 10),
+      }));
 
       const stats: DashboardStats = {
         totalLeads: parseInt(totalLeadsRes[0]?.count || '0', 10),
@@ -75,9 +96,13 @@ export async function GET() {
         availableProperties: parseInt(availablePropertiesRes[0]?.count || '0', 10),
       };
 
-      return NextResponse.json({ stats });
+      return NextResponse.json({
+        stats,
+        leadsBySource,
+        includeDemo,
+      });
     } catch (dbErr) {
-      console.error('Error fetching dashboard counts from Postgres, attempting Supabase fallback:', dbErr);
+      console.error('Error fetching dashboard counts from Postgres, attempting fallback:', dbErr);
       const supabase = await createClient();
       const [
         totalLeadsRes,
@@ -87,8 +112,8 @@ export async function GET() {
         closedDealsRes,
         availablePropertiesRes,
       ] = await Promise.all([
-        supabase.from('leads').select('*', { count: 'exact', head: true }),
-        supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
+        supabase.from('leads').select('*', { count: 'exact', head: true }).eq('is_demo', false),
+        supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new').eq('is_demo', false),
         supabase.from('follow_ups').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('site_visits').select('*', { count: 'exact', head: true }),
         supabase.from('deals').select('*', { count: 'exact', head: true }).eq('status', 'closed_won'),
@@ -104,19 +129,12 @@ export async function GET() {
           closedDeals: closedDealsRes.count ?? 0,
           availableProperties: availablePropertiesRes.count ?? 0,
         },
+        leadsBySource: [],
+        includeDemo: false,
       });
     }
   } catch (err: unknown) {
-    console.error('Dashboard stats API error:', err);
-    return NextResponse.json({
-      stats: {
-        totalLeads: 0,
-        newLeads: 0,
-        pendingFollowUps: 0,
-        siteVisitsToday: 0,
-        closedDeals: 0,
-        availableProperties: 0,
-      },
-    });
+    console.error('Dashboard stats error:', err);
+    return NextResponse.json({ error: 'Failed to fetch dashboard metrics' }, { status: 500 });
   }
 }

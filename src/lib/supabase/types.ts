@@ -106,12 +106,18 @@ export type LeadStatus =
 export type LeadType = 'buy' | 'sell' | 'rent' | 'commercial';
 
 export type LeadSource =
-  | 'walk_in'
-  | 'reference'
+  | 'housing'
   | 'instagram'
+  | 'whatsapp'
   | 'google'
+  | 'facebook'
+  | 'meta_ads'
   | 'website'
-  | 'other';
+  | 'manual'
+  | 'csv'
+  | 'other'
+  | 'walk_in'
+  | 'reference';
 
 export interface Lead {
   id: string;
@@ -122,6 +128,8 @@ export interface Lead {
   alternate_phone: string | null;
   status: LeadStatus;
   source: LeadSource;
+  source_detail?: string | null;
+  is_demo: boolean;
   lead_type: LeadType;
   budget_min: number | null;
   budget_max: number | null;
@@ -153,6 +161,7 @@ export interface LeadHistoryItem {
   title: string;
   description: string | null;
   details: Record<string, unknown>;
+  is_demo?: boolean;
   created_at: string;
 }
 
@@ -220,6 +229,7 @@ export interface FollowUp {
   acknowledged_at: string | null;
   repeat_count: number;
   completed_at: string | null;
+  is_demo?: boolean;
   created_at: string;
   updated_at: string;
   lead?: {
@@ -644,3 +654,22 @@ export interface EmployeeDailyReport {
     totalBrokerage: number;
   };
 }
+
+export type IntegrationProvider =
+  | 'meta_lead_ads'
+  | 'housing'
+  | 'google_ads'
+  | 'whatsapp_business'
+  | 'instagram_dms';
+
+export interface IntegrationConfig {
+  id: string;
+  provider: IntegrationProvider;
+  is_connected: boolean;
+  settings: Record<string, unknown>;
+  last_sync_at: string | null;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
+import { findDuplicateLead } from '@/lib/leads/duplicate-check';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
           budgetMax: Number(getCol(cols, 'budgetmax', 'maxbudget')) || undefined,
           location: getCol(cols, 'location', 'area', 'city') || undefined,
           requirement: getCol(cols, 'requirement', 'bhk', 'config') || undefined,
-          source: getCol(cols, 'source', 'leadsource') || 'website',
+          source: getCol(cols, 'source', 'leadsource') || 'csv',
           leadType: getCol(cols, 'type', 'leadtype') || 'buy',
           status: getCol(cols, 'status') || 'new',
           remarks: getCol(cols, 'remarks', 'notes', 'comment') || undefined,
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
     }
 
     const errors: { row: number; error: string; data?: unknown }[] = [];
+    const duplicates: { row: number; name: string; phone: string; existingLead: unknown }[] = [];
     let successCount = 0;
 
     for (let index = 0; index < parsedRows.length; index++) {
@@ -156,14 +158,43 @@ export async function POST(request: Request) {
         continue;
       }
 
+      // Check for duplicate phone
+      const duplicate = await findDuplicateLead(cleanPhone);
+      if (duplicate) {
+        duplicates.push({
+          row: rowNum,
+          name: row.fullName,
+          phone: cleanPhone,
+          existingLead: {
+            id: duplicate.id,
+            name: duplicate.full_name,
+            status: duplicate.status,
+          },
+        });
+        continue;
+      }
+
       // Sanitize status and types
       const validStatuses = ['new', 'contacted', 'follow_up', 'site_visit', 'negotiation', 'closed_won', 'closed_lost'];
       let sanitizedStatus = row.status?.replace(/\s+/g, '_') || 'new';
       if (!validStatuses.includes(sanitizedStatus)) sanitizedStatus = 'new';
 
-      const validSources = ['walk_in', 'reference', 'instagram', 'google', 'website', 'other'];
-      let sanitizedSource = row.source?.replace(/\s+/g, '_') || 'website';
-      if (!validSources.includes(sanitizedSource)) sanitizedSource = 'website';
+      const validSources = [
+        'meta_ads',
+        'housing',
+        'whatsapp',
+        'google',
+        'instagram',
+        'facebook',
+        'website',
+        'walk_in',
+        'reference',
+        'manual',
+        'csv',
+        'other',
+      ];
+      let sanitizedSource = row.source?.replace(/\s+/g, '_') || 'csv';
+      if (!validSources.includes(sanitizedSource)) sanitizedSource = 'csv';
 
       const validTypes = ['buy', 'sell', 'rent', 'commercial'];
       let sanitizedType = row.leadType || 'buy';
@@ -228,9 +259,31 @@ export async function POST(request: Request) {
       }
     }
 
+    // Log import to audit_logs
+    if (successCount > 0 || duplicates.length > 0) {
+      await query(
+        `INSERT INTO public.audit_logs (user_id, action, entity, entity_id, details)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          auth.userId,
+          'import',
+          'leads',
+          auth.userId,
+          JSON.stringify({
+            importedCount: successCount,
+            duplicateCount: duplicates.length,
+            totalRows: parsedRows.length,
+            duplicatesSummary: duplicates.slice(0, 10),
+          }),
+        ]
+      );
+    }
+
     return NextResponse.json({
       success: true,
       importedCount: successCount,
+      duplicateCount: duplicates.length,
+      duplicates,
       totalProcessed: parsedRows.length,
       errors,
     });

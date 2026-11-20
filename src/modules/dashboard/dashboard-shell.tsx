@@ -20,12 +20,15 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Expenses30DayChart, DailySpendPoint } from '@/components/charts/expenses-30day-chart';
 import { ExpiringAgreementsWidget } from '@/components/widgets/expiring-agreements-widget';
+import { LeadsBySourceWidget } from '@/components/widgets/leads-by-source-widget';
 
 interface DashboardShellProps {
   userName: string;
 }
 
 export function DashboardShell({ userName }: DashboardShellProps) {
+  const [showDemoData, setShowDemoData] = useState(false);
+  const [leadsBySource, setLeadsBySource] = useState<Array<{ source: string; count: number }>>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalLeads: 0,
     newLeads: 0,
@@ -51,7 +54,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
     try {
       setIsRefreshing(true);
       const [resStats, resExp] = await Promise.all([
-        fetch('/api/dashboard/stats'),
+        fetch(`/api/dashboard/stats?include_demo=${showDemoData}`),
         fetch('/api/expenses'),
       ]);
 
@@ -59,6 +62,9 @@ export function DashboardShell({ userName }: DashboardShellProps) {
         const data = await resStats.json();
         if (data.stats) {
           setStats(data.stats);
+        }
+        if (data.leadsBySource) {
+          setLeadsBySource(data.leadsBySource);
         }
       }
 
@@ -80,7 +86,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [showDemoData]);
 
   const metricCards = [
     {
@@ -149,7 +155,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
               Welcome back, {userName || 'Agent'}
             </h1>
             <Badge variant="gold" className="text-[10px]">
-              Phase 5 Active
+              Phase 7 Active
             </Badge>
           </div>
           <p className="mt-1 text-sm text-slate-500">
@@ -157,7 +163,17 @@ export function DashboardShell({ userName }: DashboardShellProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs font-medium text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors">
+            <input
+              type="checkbox"
+              checked={showDemoData}
+              onChange={(e) => setShowDemoData(e.target.checked)}
+              className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+            />
+            <span>Show Demo Data</span>
+          </label>
+
           <button
             onClick={fetchStats}
             disabled={isRefreshing}
@@ -230,6 +246,11 @@ export function DashboardShell({ userName }: DashboardShellProps) {
         <div>
           <ExpiringAgreementsWidget />
         </div>
+      </div>
+
+      {/* Phase 7: Leads by Inflow Source Widget */}
+      <div>
+        <LeadsBySourceWidget sources={leadsBySource} includeDemo={showDemoData} />
       </div>
 
       {/* Real Estate Activity & Roster Grid */}

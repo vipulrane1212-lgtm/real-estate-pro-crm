@@ -33,11 +33,17 @@ const LEAD_STATUSES: { id: LeadStatus; label: string }[] = [
 ];
 
 const LEAD_SOURCES: { id: LeadSource; label: string }[] = [
+  { id: 'meta_ads', label: 'Meta Ads (Facebook/Instagram)' },
+  { id: 'housing', label: 'Housing.com' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+  { id: 'google', label: 'Google Ads / Search' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'website', label: 'Website' },
   { id: 'walk_in', label: 'Walk-in' },
   { id: 'reference', label: 'Reference' },
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'google', label: 'Google Ads / Search' },
-  { id: 'website', label: 'Website' },
+  { id: 'manual', label: 'Manual' },
+  { id: 'csv', label: 'CSV Import' },
+  { id: 'facebook', label: 'Facebook' },
   { id: 'other', label: 'Other' },
 ];
 
@@ -70,6 +76,7 @@ export function LeadModal({
   const [leadType, setLeadType] = useState<LeadType>('buy');
   const [status, setStatus] = useState<LeadStatus>('new');
   const [source, setSource] = useState<LeadSource>('website');
+  const [sourceDetail, setSourceDetail] = useState('');
   const [location, setLocation] = useState('');
   const [requirement, setRequirement] = useState('');
   const [budgetMin, setBudgetMin] = useState<string>('');
@@ -79,6 +86,14 @@ export function LeadModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    id: string;
+    full_name: string;
+    phone: string;
+    status: string;
+    assigned_name?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,6 +105,7 @@ export function LeadModal({
         setLeadType(initialLead.lead_type || 'buy');
         setStatus(initialLead.status || 'new');
         setSource(initialLead.source || 'website');
+        setSourceDetail(initialLead.source_detail || '');
         setLocation(initialLead.location || initialLead.preferred_location || '');
         setRequirement(initialLead.requirement || '');
         setBudgetMin(initialLead.budget_min ? String(initialLead.budget_min) : '');
@@ -105,6 +121,7 @@ export function LeadModal({
         setLeadType('buy');
         setStatus('new');
         setSource('website');
+        setSourceDetail('');
         setLocation('');
         setRequirement('');
         setBudgetMin('');
@@ -113,8 +130,27 @@ export function LeadModal({
         setRemarks('');
       }
       setErrorMessage('');
+      setAllowDuplicate(false);
+      setDuplicateWarning(null);
     }
   }, [isOpen, initialLead]);
+
+  const handlePhoneBlur = async () => {
+    if (isEditing || !phone.trim() || phone.trim().length < 10) return;
+    try {
+      const res = await fetch(`/api/leads/check-duplicate?phone=${encodeURIComponent(phone.trim())}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isDuplicate && data.duplicateLead) {
+          setDuplicateWarning(data.duplicateLead);
+        } else {
+          setDuplicateWarning(null);
+        }
+      }
+    } catch {
+      // ignore network errors on blur
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,12 +175,14 @@ export function LeadModal({
         lead_type: leadType,
         status,
         source,
+        source_detail: sourceDetail.trim() || null,
         location: location.trim() || null,
         requirement: requirement.trim() || null,
         budget_min: budgetMin ? Number(budgetMin) : null,
         budget_max: budgetMax ? Number(budgetMax) : null,
         assigned_to: assignedTo || null,
         remarks: remarks.trim() || null,
+        allow_duplicate: allowDuplicate,
       };
 
       const url = isEditing && initialLead ? `/api/leads/${initialLead.id}` : '/api/leads';
@@ -158,6 +196,11 @@ export function LeadModal({
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 409 && data.duplicateLead) {
+          setDuplicateWarning(data.duplicateLead);
+          setErrorMessage(data.error || 'A lead with this mobile already exists.');
+          return;
+        }
         throw new Error(data.error || 'Failed to save lead');
       }
 
@@ -194,6 +237,44 @@ export function LeadModal({
           </div>
         )}
 
+        {duplicateWarning && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 shadow-xs">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900">Lead with this mobile already exists!</h4>
+                <p className="mt-1 text-xs text-amber-800">
+                  <strong>{duplicateWarning.full_name}</strong> ({duplicateWarning.status.replace('_', ' ')}, assigned to{' '}
+                  {duplicateWarning.assigned_name || 'Unassigned'}).
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      window.location.href = `/leads?search=${encodeURIComponent(duplicateWarning.phone)}`;
+                    }}
+                    className="rounded bg-amber-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-900 cursor-pointer"
+                  >
+                    Open Existing Lead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAllowDuplicate(true);
+                      setDuplicateWarning(null);
+                      setErrorMessage('');
+                    }}
+                    className="rounded border border-amber-400 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100 cursor-pointer"
+                  >
+                    Create Anyway (Allow Duplicate)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Client Core Information */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -223,7 +304,11 @@ export function LeadModal({
                 type="tel"
                 required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (duplicateWarning) setDuplicateWarning(null);
+                }}
+                onBlur={handlePhoneBlur}
                 placeholder="10-digit mobile number"
                 className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
@@ -264,7 +349,7 @@ export function LeadModal({
         </div>
 
         {/* Lead Classification & Pipeline Stage */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
               Lead Type
@@ -314,6 +399,19 @@ export function LeadModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Source Detail / Campaign
+            </label>
+            <input
+              type="text"
+              value={sourceDetail}
+              onChange={(e) => setSourceDetail(e.target.value)}
+              placeholder="e.g. adset: Gomti, ref: Client"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            />
           </div>
         </div>
 
