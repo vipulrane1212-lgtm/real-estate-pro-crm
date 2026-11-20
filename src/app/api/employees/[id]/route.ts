@@ -30,7 +30,8 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { isActive, designation, permissions, managerId } = body;
+    const { isActive, is_active, designation, permissions, managerId } = body;
+    const activeVal = typeof isActive === 'boolean' ? isActive : (typeof is_active === 'boolean' ? is_active : undefined);
 
     // Fetch existing employee to get user_id
     const existing = await query<Employee>('SELECT * FROM public.employees WHERE id = $1', [id]);
@@ -39,7 +40,7 @@ export async function PATCH(
     }
 
     const emp = existing[0];
-    const newActive = typeof isActive === 'boolean' ? isActive : emp.is_active;
+    const newActive = typeof activeVal === 'boolean' ? activeVal : emp.is_active;
     const newDesignation = designation !== undefined ? designation : emp.designation;
     const newPermissions = permissions !== undefined ? JSON.stringify(permissions) : JSON.stringify(emp.permissions);
     const newManager = managerId !== undefined ? managerId : emp.manager_id;
@@ -54,9 +55,9 @@ export async function PATCH(
     );
 
     // Sync is_active to profiles
-    if (typeof isActive === 'boolean') {
+    if (typeof activeVal === 'boolean') {
       await query('UPDATE public.profiles SET is_active = $1, updated_at = now() WHERE id = $2', [
-        isActive,
+        activeVal,
         emp.user_id,
       ]);
     }

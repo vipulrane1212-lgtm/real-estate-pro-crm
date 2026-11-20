@@ -4,6 +4,7 @@ export interface Profile {
   id: string;
   full_name: string;
   phone: string | null;
+  email?: string | null;
   role: UserRole;
   is_active: boolean;
   created_at: string;
@@ -378,7 +379,8 @@ export interface Deal {
 
 export interface BrokerageRecord {
   id: string;
-  deal_id: string;
+  deal_id?: string | null;
+  rental_id?: string | null;
   agent_id: string;
   total_brokerage: number;
   paid_brokerage: number;
@@ -390,6 +392,7 @@ export interface BrokerageRecord {
   created_at: string;
   updated_at: string;
   deal?: Deal | null;
+  rental?: RentalRecord | null;
   agent?: {
     id: string;
     designation: string;
@@ -513,4 +516,131 @@ export interface DashboardStats {
   siteVisitsToday: number;
   closedDeals: number;
   availableProperties: number;
+}
+
+export type RentalStatus = 'active' | 'pending_booking' | 'notice_period' | 'completed' | 'terminated';
+
+export interface RentalRecord {
+  id: string;
+  rental_number: number;
+  property_id: string;
+  tenant_name: string;
+  tenant_phone: string;
+  tenant_email?: string | null;
+  tenant_id?: string | null;
+  tenant_id_number?: string | null;
+  owner_name?: string | null;
+  owner_phone?: string | null;
+  agent_id?: string | null;
+  monthly_rent: number;
+  deposit_amount: number;
+  rent_due_day: number;
+  agreement_start_date: string;
+  agreement_end_date: string;
+  status: RentalStatus;
+  brokerage_percentage: number;
+  brokerage_amount: number;
+  booking_amount: number;
+  booking_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  property?: {
+    id: string;
+    title: string;
+    location: string | null;
+    price?: number;
+    address?: string | null;
+  } | null;
+  agent?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
+  payments?: RentPaymentRecord[];
+}
+
+export type RentPaymentStatus = 'pending' | 'paid' | 'overdue';
+
+export interface RentPaymentRecord {
+  id: string;
+  rental_id: string;
+  month_year: string;
+  due_date: string;
+  amount: number;
+  status: RentPaymentStatus;
+  paid_date?: string | null;
+  payment_mode?: 'upi' | 'bank_transfer' | 'cash' | 'cheque' | string | null;
+  transaction_reference?: string | null;
+  notes?: string | null;
+  collected_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ProjectSubmissionStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ProjectSubmissionRecord {
+  id: string;
+  project_name: string;
+  project_type: 'flat' | 'land' | 'commercial' | 'other' | string;
+  location: string;
+  price_range?: string | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  description?: string | null;
+  photos: string[];
+  client_name: string;
+  client_phone: string;
+  client_email?: string | null;
+  status: ProjectSubmissionStatus;
+  admin_notes?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_property_id?: string | null;
+  created_property?: {
+    id: string;
+    title: string;
+    property_code: string;
+  } | null;
+  created_at: string;
+  updated_at: string;
+  reviewer?: {
+    full_name: string;
+  } | null;
+}
+
+export interface EmployeeDailyReport {
+  id: string;
+  user_id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  role: string;
+  designation: string;
+  is_active: boolean;
+  joining_date?: string | null;
+  today: {
+    leadsAssigned: number;
+    callsLogged: number;
+    visitsDone: number;
+    followupsCompleted: number;
+  };
+  thisMonth: {
+    leadsAssigned: number;
+    callsLogged: number;
+    visitsDone: number;
+    followupsCompleted: number;
+    dealsClosed: number;
+    brokerageEarned: number;
+  };
+  allTime: {
+    leadsAssigned: number;
+    callsLogged: number;
+    visitsDone: number;
+    dealsClosed: number;
+    totalBrokerage: number;
+  };
 }

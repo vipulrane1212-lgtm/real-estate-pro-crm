@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export interface ExpiryAlertItem {
   id: string;
-  source: 'document' | 'deal';
+  source: 'document' | 'deal' | 'rental';
   title: string;
   document_type?: string;
   client_name: string;
@@ -125,6 +125,58 @@ export async function GET() {
         client_name: dl.client_name,
         property_title: dl.property_title,
         expiry_date: dl.expiry_date,
+        days_remaining: days,
+        is_expired: isExpired,
+        voice_trigger: voiceTrigger,
+        spoken_text: spokenText,
+      });
+    }
+
+    // 3. Active Rentals with agreement_end_date
+    const rentalSql = `
+      SELECT 
+        r.id,
+        r.rental_number,
+        r.tenant_name,
+        COALESCE(r.owner_name, 'Owner') as owner_name,
+        TO_CHAR(r.agreement_end_date, 'YYYY-MM-DD') as expiry_date,
+        (r.agreement_end_date - CURRENT_DATE) as days_remaining,
+        COALESCE(p.title, 'Rental Property') as property_title
+      FROM public.rentals r
+      JOIN public.properties p ON r.property_id = p.id
+      WHERE r.status = 'active'
+        AND r.agreement_end_date <= (CURRENT_DATE + INTERVAL '30 days')
+      ORDER BY r.agreement_end_date ASC
+      LIMIT 50
+    `;
+
+    const rentalRows = await query<{
+      id: string;
+      rental_number: number;
+      tenant_name: string;
+      owner_name: string;
+      expiry_date: string;
+      days_remaining: number;
+      property_title: string;
+    }>(rentalSql);
+
+    for (const r of rentalRows) {
+      const days = Number(r.days_remaining);
+      const isExpired = days < 0;
+      const voiceTrigger = [0, 1, 3, 7].includes(days);
+      const daysText = days === 0 ? 'today' : days === 1 ? 'in 1 day' : `in ${days} days`;
+      const spokenText = isExpired
+        ? `Attention: Rental Agreement #${r.rental_number} for ${r.property_title} expired ${Math.abs(days)} days ago`
+        : `Attention: Rental Agreement #${r.rental_number} for ${r.property_title} expires ${daysText}`;
+
+      items.push({
+        id: r.id,
+        source: 'rental',
+        title: `Rental #${r.rental_number} (${r.property_title})`,
+        document_type: 'rental_agreement',
+        client_name: `${r.tenant_name} (Tenant)`,
+        property_title: r.property_title,
+        expiry_date: r.expiry_date,
         days_remaining: days,
         is_expired: isExpired,
         voice_trigger: voiceTrigger,

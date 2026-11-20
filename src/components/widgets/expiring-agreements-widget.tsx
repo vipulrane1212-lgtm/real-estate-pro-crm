@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 interface ExpiryItem {
   id: string;
-  source: 'document' | 'deal';
+  source: 'document' | 'deal' | 'rental';
   title: string;
   document_type?: string;
   client_name: string;

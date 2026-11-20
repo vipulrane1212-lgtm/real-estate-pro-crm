@@ -44,6 +44,7 @@ export async function GET() {
           profile_phone: string | null;
           profile_role: Profile['role'];
           profile_is_active: boolean;
+          profile_email: string | null;
         }
       >(`
         SELECT 
@@ -60,9 +61,11 @@ export async function GET() {
           p.full_name as profile_name,
           p.phone as profile_phone,
           p.role as profile_role,
-          p.is_active as profile_is_active
+          p.is_active as profile_is_active,
+          u.email as profile_email
         FROM public.employees e
         LEFT JOIN public.profiles p ON e.user_id = p.id
+        LEFT JOIN auth.users u ON e.user_id = u.id
         ORDER BY e.created_at DESC
       `);
 
@@ -80,6 +83,7 @@ export async function GET() {
           id: r.profile_id,
           full_name: r.profile_name,
           phone: r.profile_phone,
+          email: r.profile_email,
           role: r.profile_role,
           is_active: r.profile_is_active,
           created_at: r.created_at,

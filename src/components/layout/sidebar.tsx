@@ -19,6 +19,8 @@ import {
   Settings,
   X,
   Building,
+  KeyRound,
+  Layers,
 } from 'lucide-react';
 import { UserRole } from '@/lib/supabase/types';
 
@@ -49,6 +51,8 @@ export function Sidebar({
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Leads', href: '/leads', icon: Users },
     { name: 'Properties', href: '/properties', icon: Building2 },
+    { name: 'Rentals', href: '/rentals', icon: KeyRound },
+    { name: 'Client Projects', href: '/projects', icon: Layers },
     { name: 'Follow-ups', href: '/follow-ups', icon: CalendarClock },
     { name: 'Site Visits', href: '/site-visits', icon: MapPin },
     { name: 'Calls', href: '/calls', icon: PhoneCall },
