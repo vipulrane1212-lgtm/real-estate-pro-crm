@@ -6,11 +6,46 @@ export interface SessionData {
   role: 'super_admin' | 'admin' | 'employee';
 }
 
-const SESSION_COOKIE_NAME = 'diksha_crm_session';
+export const SESSION_COOKIE_NAME = 'diksha_crm_session';
+
+export function decodeSessionToken(rawToken: string): SessionData | null {
+  if (!rawToken) return null;
+  try {
+    let clean = rawToken.trim();
+    try {
+      clean = decodeURIComponent(clean);
+    } catch {
+      // Ignore if not uri-encoded
+    }
+
+    // Try standard base64 first
+    try {
+      const jsonStr = Buffer.from(clean, 'base64').toString('utf-8');
+      const data = JSON.parse(jsonStr) as SessionData;
+      if (data && data.userId) return data;
+    } catch {
+      // fallback to base64url
+    }
+
+    // Try base64url
+    try {
+      const jsonStr = Buffer.from(clean, 'base64url').toString('utf-8');
+      const data = JSON.parse(jsonStr) as SessionData;
+      if (data && data.userId) return data;
+    } catch {
+      // fallback
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export async function setSession(data: SessionData) {
   const cookieStore = await cookies();
-  const sessionToken = Buffer.from(JSON.stringify(data)).toString('base64');
+  // Use base64url for safe cookie storage without '+' or '=' padding
+  const sessionToken = Buffer.from(JSON.stringify(data)).toString('base64url');
   cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -25,9 +60,7 @@ export async function getSession(): Promise<SessionData | null> {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
     if (!sessionCookie?.value) return null;
-
-    const decoded = Buffer.from(sessionCookie.value, 'base64').toString('utf-8');
-    return JSON.parse(decoded) as SessionData;
+    return decodeSessionToken(sessionCookie.value);
   } catch {
     return null;
   }
@@ -42,10 +75,5 @@ export function parseSessionFromHeader(cookieHeader: string | null): SessionData
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE_NAME}=([^;]+)`));
   if (!match || !match[1]) return null;
-  try {
-    const decoded = Buffer.from(match[1], 'base64').toString('utf-8');
-    return JSON.parse(decoded) as SessionData;
-  } catch {
-    return null;
-  }
+  return decodeSessionToken(match[1]);
 }

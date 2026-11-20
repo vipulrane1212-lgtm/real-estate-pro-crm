@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { parseSessionFromHeader } from '@/lib/auth/session';
+import { parseSessionFromHeader, decodeSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth/session';
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
@@ -27,8 +27,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/accounts') ||
     pathname.startsWith('/reports');
 
-  // Check Local Session Cookie first
-  const localSession = parseSessionFromHeader(request.headers.get('cookie'));
+  // Check Local Session Cookie first (from parsed request cookies or raw header)
+  const cookieVal = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  let localSession = cookieVal ? decodeSessionToken(cookieVal) : null;
+  if (!localSession) {
+    localSession = parseSessionFromHeader(request.headers.get('cookie'));
+  }
   let isAuthenticated = !!localSession?.userId;
 
   // If no local session cookie, check Supabase auth

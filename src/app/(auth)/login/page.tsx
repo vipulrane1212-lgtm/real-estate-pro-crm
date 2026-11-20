@@ -30,9 +30,8 @@ export default function LoginPage() {
         throw new Error(data.error || 'Authentication failed. Please verify credentials.');
       }
 
-      // Successfully authenticated
-      router.push('/dashboard');
-      router.refresh();
+      // Successfully authenticated: navigate directly to dashboard
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error

@@ -25,13 +25,14 @@ export function Topbar({
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push('/login');
-      router.refresh();
+      await fetch('/api/auth/logout', { method: 'POST' });
+      try {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      } catch {}
+      window.location.href = '/login';
     } catch (err) {
       console.error('Logout error:', err);
-      // Fallback redirect
       window.location.href = '/login';
     } finally {
       setIsLoggingOut(false);
