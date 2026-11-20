@@ -39,7 +39,13 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const navigationItems = [
+  const navigationItems: Array<{
+    name: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    adminOnly?: boolean;
+    badge?: string;
+  }> = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Leads', href: '/leads', icon: Users },
     { name: 'Properties', href: '/properties', icon: Building2 },
@@ -48,10 +54,11 @@ export function Sidebar({
     { name: 'Calls', href: '/calls', icon: PhoneCall },
     { name: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
     { name: 'Brokerage & Deals', href: '/brokerage', icon: Percent },
+    { name: 'Attendance', href: '/attendance', icon: UserCheck },
+    { name: 'Documents', href: '/documents', icon: FileText },
+    { name: 'Office Expenses', href: '/accounts', icon: Receipt },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
-    { name: 'Documents', href: '/documents', icon: FileText, badge: 'Phase 4' },
-    { name: 'Accounts', href: '/accounts', icon: Receipt, badge: 'Phase 4' },
-    { name: 'Employees', href: '/employees', icon: UserCheck, adminOnly: true },
+    { name: 'Employees', href: '/employees', icon: Building, adminOnly: true },
     { name: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
   ];
 
@@ -164,10 +171,10 @@ export function Sidebar({
           <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 p-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Phase 3 Active
+              Phase 4 Active
             </div>
             <p className="mt-1 text-[11px] text-amber-800/80 leading-relaxed">
-              Leads, Properties, Calls, WhatsApp, Visits, Deals & BI Reports are active.
+              Documents, GPS Attendance & Office Expenses are live.
             </p>
           </div>
         </div>

@@ -1,11 +1,11 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@172.31.128.153:5432/diksha_crm'
+  connectionString: 'postgresql://postgres:postgres@172.31.128.153:5432/diksha_crm',
 });
 
 async function run() {
-  const tables = ['calls', 'site_visits', 'deals', 'brokerage', 'documents', 'whatsapp_messages'];
+  const tables = ['documents', 'attendance', 'expenses'];
   for (const t of tables) {
     const res = await pool.query(
       `SELECT column_name, data_type, is_nullable, column_default 
@@ -15,14 +15,14 @@ async function run() {
       [t]
     );
     console.log(`\n=== TABLE: ${t} (${res.rows.length} columns) ===`);
-    res.rows.forEach(r => {
-      console.log(`  ${r.column_name}: ${r.data_type}`);
+    res.rows.forEach((r) => {
+      console.log(`  ${r.column_name}: ${r.data_type} (null: ${r.is_nullable}) default: ${r.column_default}`);
     });
   }
   await pool.end();
 }
 
-run().catch(err => {
+run().catch((err) => {
   console.error(err);
   process.exit(1);
 });

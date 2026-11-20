@@ -398,18 +398,83 @@ export interface BrokerageRecord {
   } | null;
 }
 
+export type DocumentType =
+  | 'aadhaar'
+  | 'pan'
+  | 'agreement'
+  | 'index_2'
+  | 'oc'
+  | 'cc'
+  | 'rera'
+  | 'other';
+
+export interface DocumentRecord {
+  id: string;
+  title: string;
+  document_type: DocumentType;
+  file_url: string;
+  file_type?: string | null;
+  file_size?: number | null;
+  bucket_name: string;
+  lead_id?: string | null;
+  property_id?: string | null;
+  deal_id?: string | null;
+  uploaded_by?: string | null;
+  expiry_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  uploader?: {
+    id: string;
+    full_name: string;
+  } | null;
+  lead?: {
+    id: string;
+    full_name: string;
+    phone: string;
+  } | null;
+  property?: {
+    id: string;
+    title: string;
+  } | null;
+  deal?: {
+    id: string;
+    deal_number: number;
+  } | null;
+}
+
+export type ExpenseCategory =
+  | 'rent'
+  | 'electricity'
+  | 'tea_coffee'
+  | 'travel'
+  | 'marketing'
+  | 'stationery'
+  | 'salary_advance'
+  | 'other';
+
 export interface ExpenseRecord {
   id: string;
   title: string;
-  category: 'marketing' | 'office' | 'travel' | 'legal' | 'maintenance' | 'other';
+  category: ExpenseCategory | string;
   amount: number;
   expense_date: string;
   paid_to: string | null;
-  approved_by: string | null;
+  employee_id?: string | null;
+  approved_by?: string | null;
   receipt_url: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+    };
+  } | null;
 }
+
+export type AttendanceStatus = 'present' | 'late' | 'absent' | 'half_day';
 
 export interface AttendanceRecord {
   id: string;
@@ -417,9 +482,26 @@ export interface AttendanceRecord {
   date: string;
   check_in: string | null;
   check_out: string | null;
-  status: 'present' | 'absent' | 'half_day' | 'on_leave';
+  check_in_selfie_url?: string | null;
+  check_in_latitude?: number | null;
+  check_in_longitude?: number | null;
+  check_in_address?: string | null;
+  check_out_selfie_url?: string | null;
+  check_out_latitude?: number | null;
+  check_out_longitude?: number | null;
+  check_out_address?: string | null;
+  status: AttendanceStatus | string;
+  is_late: boolean;
   notes: string | null;
   created_at: string;
+  employee?: {
+    id: string;
+    designation: string;
+    profile?: {
+      full_name: string;
+      phone?: string | null;
+    };
+  } | null;
 }
 
 export interface DashboardStats {

@@ -38,7 +38,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const allowedBuckets = ['company-assets', 'documents', 'property-photos', 'call-recordings'];
+    const allowedBuckets = [
+      'company-assets',
+      'documents',
+      'property-photos',
+      'call-recordings',
+      'attendance',
+      'expenses',
+    ];
     if (!allowedBuckets.includes(bucket)) {
       return NextResponse.json({ error: 'Invalid storage bucket target' }, { status: 400 });
     }

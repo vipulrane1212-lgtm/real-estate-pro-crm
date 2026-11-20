@@ -8,6 +8,8 @@ import { LogCallModal } from '@/modules/calls/log-call-modal';
 import { WhatsAppModal } from '@/modules/whatsapp/whatsapp-modal';
 import { SiteVisitModal } from '@/modules/site-visits/site-visit-modal';
 import { DealModal } from '@/modules/deals/deal-modal';
+import { DocumentUploadModal } from '@/modules/documents/document-upload-modal';
+import { DocumentRecord } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -82,11 +84,13 @@ export function LeadDetailDrawer({
   employees = [],
   isAdmin = false,
 }: LeadDetailDrawerProps) {
-  const [activeTab, setActiveTab] = useState<'matches' | 'timeline' | 'details'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'timeline' | 'details' | 'documents'>('matches');
   const [history, setHistory] = useState<LeadHistoryItem[]>([]);
   const [matchedProperties, setMatchedProperties] = useState<MatchedPropertyResult[]>([]);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingMatches, setIsLoadingMatches] = useState(false);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(false);
 
   // New Note
   const [noteTitle, setNoteTitle] = useState('');
@@ -96,11 +100,12 @@ export function LeadDetailDrawer({
   // Follow-up modal
   const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
 
-  // Phase 3 modals
+  // Phase 3 & 4 modals
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [isSiteVisitModalOpen, setIsSiteVisitModalOpen] = useState(false);
   const [isDealModalOpen, setIsDealModalOpen] = useState(false);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
 
   // Status updating
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -109,8 +114,24 @@ export function LeadDetailDrawer({
     if (isOpen && lead) {
       loadHistory(lead.id);
       loadMatches(lead.id);
+      loadDocuments(lead.id);
     }
   }, [isOpen, lead?.id]);
+
+  const loadDocuments = async (leadId: string) => {
+    setIsLoadingDocuments(true);
+    try {
+      const res = await fetch(`/api/documents?lead_id=${leadId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDocuments(data.documents || []);
+      }
+    } catch (e) {
+      console.error('Failed to load lead documents', e);
+    } finally {
+      setIsLoadingDocuments(false);
+    }
+  };
 
   const loadHistory = async (leadId: string) => {
     setIsLoadingHistory(true);
@@ -423,6 +444,23 @@ export function LeadDetailDrawer({
             <FileText className="h-4 w-4" />
             Lead Specs
           </button>
+
+          <button
+            onClick={() => setActiveTab('documents')}
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold transition ${
+              activeTab === 'documents'
+                ? 'border-amber-500 text-amber-700'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            Documents & KYC
+            {documents.length > 0 && (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                {documents.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Tab Content Body */}
@@ -694,6 +732,64 @@ export function LeadDetailDrawer({
               )}
             </div>
           )}
+
+          {/* TAB 4: DOCUMENTS & KYC */}
+          {activeTab === 'documents' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">Client Documents & Agreements</h4>
+                  <p className="text-xs text-slate-500">Aadhaar, PAN, sale deeds, or customer KYC files</p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setIsDocModalOpen(true)}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs shadow-xs"
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Upload Document
+                </Button>
+              </div>
+
+              {isLoadingDocuments ? (
+                <div className="py-8 text-center text-xs text-slate-500">Loading documents...</div>
+              ) : documents.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center bg-slate-50">
+                  <FileText className="mx-auto h-8 w-8 text-slate-400" />
+                  <p className="mt-2 text-xs font-semibold text-slate-700">No documents uploaded yet</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">Upload Aadhaar, PAN, or agreement copies for this client.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 hover:border-amber-400 transition"
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <div className="flex h-7 w-7 items-center justify-center rounded bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="truncate text-xs">
+                          <span className="font-semibold text-slate-900 block truncate">{doc.title}</span>
+                          <span className="text-[10px] text-slate-400 capitalize">
+                            {doc.document_type.replace('_', ' ')} • Added {new Date(doc.created_at).toLocaleDateString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-800 font-semibold border border-amber-200 rounded px-2.5 py-1 bg-amber-50"
+                      >
+                        <ExternalLink className="h-3 w-3" /> View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -762,6 +858,18 @@ export function LeadDetailDrawer({
         }}
         initialLeadId={lead.id}
         leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
+      />
+
+      {/* Document upload modal mounted */}
+      <DocumentUploadModal
+        isOpen={isDocModalOpen}
+        onClose={() => setIsDocModalOpen(false)}
+        onSuccess={() => {
+          setIsDocModalOpen(false);
+          loadDocuments(lead.id);
+          loadHistory(lead.id);
+        }}
+        initialLeadId={lead.id}
       />
     </>
   );
