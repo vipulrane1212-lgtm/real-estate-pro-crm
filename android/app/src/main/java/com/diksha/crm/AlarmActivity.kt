@@ -48,7 +48,8 @@ class AlarmActivity : Activity() {
         setContentView(R.layout.activity_alarm)
 
         val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
-        serverUrl = prefs.getString("server_url", "http://10.0.2.2:3000") ?: "http://10.0.2.2:3000"
+        serverUrl = prefs.getString("server_url", BackgroundLocationService.DEFAULT_CRM_URL)
+            ?: BackgroundLocationService.DEFAULT_CRM_URL
 
         val jsonString = intent.getStringExtra("EXTRA_FOLLOW_UP_JSON")
         parseFollowUpData(jsonString)
@@ -189,10 +190,15 @@ class AlarmActivity : Activity() {
 
     private fun postApi(urlString: String, method: String, jsonBody: String) {
         try {
+            val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
+            val sessionCookie = prefs.getString("session_cookie", "") ?: ""
             val url = URL(urlString)
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = method
             conn.setRequestProperty("Content-Type", "application/json")
+            if (sessionCookie.isNotEmpty()) {
+                conn.setRequestProperty("Cookie", sessionCookie)
+            }
             conn.doOutput = true
             conn.outputStream.use { os ->
                 os.write(jsonBody.toByteArray())

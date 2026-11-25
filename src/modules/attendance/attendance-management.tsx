@@ -20,12 +20,14 @@ import {
   ChevronRight,
   FileSpreadsheet,
   Navigation,
+  Smartphone,
 } from 'lucide-react';
 import { AttendanceRecord } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { CameraPunchModal } from './camera-punch-modal';
 import { LiveFleetRadar } from './live-fleet-radar';
+import { ANDROID_APK_DOWNLOAD_URL } from '@/lib/mobile-app';
 
 interface AttendanceSummary {
   total: number;
@@ -249,6 +251,14 @@ export function AttendanceManagement() {
                 Shift Completed Today
               </div>
             )}
+            <a
+              href={ANDROID_APK_DOWNLOAD_URL}
+              download="Diksha-CRM-Mobile.apk"
+              className="inline-flex min-h-[40px] sm:min-h-[36px] items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            >
+              <Smartphone className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+              <span>Android App (.apk)</span>
+            </a>
           </div>
         </div>
       </div>

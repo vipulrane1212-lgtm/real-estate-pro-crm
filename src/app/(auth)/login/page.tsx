@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
+import { Building, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ANDROID_APK_DOWNLOAD_URL } from '@/lib/mobile-app';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -128,9 +129,18 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="mt-6 border-t border-slate-100 pt-4 text-center">
+        <div className="mt-6 border-t border-slate-100 pt-4 text-center space-y-3">
+          <a
+            href={ANDROID_APK_DOWNLOAD_URL}
+            download="Diksha-CRM-Mobile.apk"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors"
+          >
+            <Smartphone className="h-4 w-4 text-amber-700 shrink-0" />
+            <span>Download Android App (.apk)</span>
+            <Download className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+          </a>
           <p className="text-[11px] text-slate-500">
-            Protected by Supabase Auth with Row Level Security (RLS).
+            Includes Background GPS, Live Selfie Camera &amp; Follow-up Alarms.
           </p>
         </div>
       </div>

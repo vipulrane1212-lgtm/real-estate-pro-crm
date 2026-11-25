@@ -26,7 +26,8 @@ class ConfigActivity : Activity() {
         txtStatus = findViewById(R.id.txt_test_status)
 
         val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
-        val currentUrl = prefs.getString("server_url", "http://10.0.2.2:3000") ?: "http://10.0.2.2:3000"
+        val currentUrl = prefs.getString("server_url", BackgroundLocationService.DEFAULT_CRM_URL)
+            ?: BackgroundLocationService.DEFAULT_CRM_URL
         editUrl.setText(currentUrl)
 
         findViewById<Button>(R.id.btn_save_connect).setOnClickListener {
@@ -62,7 +63,7 @@ class ConfigActivity : Activity() {
         }
 
         findViewById<Button>(R.id.btn_preset_localhost).setOnClickListener {
-            editUrl.setText("http://localhost:3000")
+            editUrl.setText(BackgroundLocationService.DEFAULT_CRM_URL)
         }
     }
 

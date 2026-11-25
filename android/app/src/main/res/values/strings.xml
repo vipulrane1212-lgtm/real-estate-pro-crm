@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Diksha CRM</string>
     <string name="server_url_label">CRM Server Address (Next.js)</string>
-    <string name="server_url_hint">http://192.168.1.15:3000</string>
-    <string name="default_server_url">http://10.0.2.2:3000</string>
+    <string name="server_url_hint">https://real-estate-pro-crm.vercel.app</string>
+    <string name="default_server_url">https://real-estate-pro-crm.vercel.app</string>
     <string name="btn_save_connect">Save &amp; Connect</string>
     <string name="btn_test_connection">Test Connection</string>
     <string name="btn_settings">Server Settings</string>

@@ -22,8 +22,11 @@ import {
   KeyRound,
   Layers,
   Network,
+  Smartphone,
+  Download,
 } from 'lucide-react';
 import { UserRole } from '@/lib/supabase/types';
+import { ANDROID_APK_DOWNLOAD_URL } from '@/lib/mobile-app';
 
 interface SidebarProps {
   userRole?: UserRole;
@@ -172,16 +175,27 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* System & Brand Footer */}
+        {/* Android App 1-Click Download Footer */}
         <div className="border-t border-slate-200 p-4 bg-slate-50">
-          <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 p-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Phase 5 Active
+          <div className="rounded-lg border border-amber-200/80 bg-amber-50/70 p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2 text-xs font-semibold text-amber-900">
+              <span className="inline-flex items-center gap-1.5">
+                <Smartphone className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                Android Field App
+              </span>
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             </div>
-            <p className="mt-1 text-[11px] text-amber-800/80 leading-relaxed">
-              Expenses 30D Chart, Loud Alarms, Voice Alerts &amp; Android App.
+            <p className="text-[11px] text-amber-800/90 leading-relaxed">
+              Background GPS, Live Selfie Camera &amp; Lock-Screen Alarms.
             </p>
+            <a
+              href={ANDROID_APK_DOWNLOAD_URL}
+              download="Diksha-CRM-Mobile.apk"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0f172a] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1e293b] transition-colors shadow-2xs"
+            >
+              <Download className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span>Download APK</span>
+            </a>
           </div>
         </div>
       </aside>

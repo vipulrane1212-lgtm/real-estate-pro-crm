@@ -35,9 +35,11 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var cameraImageUri: Uri? = null
     private var tts: TextToSpeech? = null
-    private var serverUrl: String = "http://10.0.2.2:3000"
+    private var serverUrl: String = BackgroundLocationService.DEFAULT_CRM_URL
+    private var promptedBackgroundLocation = false
 
     private val PERMISSIONS_REQUEST_CODE = 101
+    private val BACKGROUND_LOCATION_REQUEST_CODE = 102
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +53,8 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
 
         val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
-        serverUrl = prefs.getString("server_url", "http://10.0.2.2:3000") ?: "http://10.0.2.2:3000"
+        serverUrl = prefs.getString("server_url", BackgroundLocationService.DEFAULT_CRM_URL)
+            ?: BackgroundLocationService.DEFAULT_CRM_URL
 
         findViewById<Button>(R.id.btn_server_settings).setOnClickListener {
             startActivity(Intent(this, ConfigActivity::class.java))
@@ -69,8 +72,14 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         requestAppPermissions()
         setupWebView()
         startAlarmService()
+        startLocationServiceIfPermitted()
 
         webView.loadUrl(serverUrl)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocationServiceIfPermitted()
     }
 
     override fun onInit(status: Int) {
@@ -96,11 +105,49 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
         if (needed.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, needed.toTypedArray(), PERMISSIONS_REQUEST_CODE)
+        } else {
+            requestBackgroundLocationIfNeeded()
+        }
+    }
+
+    private fun requestBackgroundLocationIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !promptedBackgroundLocation) {
+            val hasFineOrCoarse =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val hasBg =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+            if (hasFineOrCoarse && !hasBg) {
+                promptedBackgroundLocation = true
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                    BACKGROUND_LOCATION_REQUEST_CODE
+                )
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            startLocationServiceIfPermitted()
+            requestBackgroundLocationIfNeeded()
+        } else if (requestCode == BACKGROUND_LOCATION_REQUEST_CODE) {
+            startLocationServiceIfPermitted()
         }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.setAcceptThirdPartyCookies(webView, true)
+
         val settings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
@@ -125,14 +172,16 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 progressBar.visibility = View.GONE
-                // Sync session cookie to SharedPreferences for the background service
+                // Sync session cookie to SharedPreferences for background services
                 url?.let {
+                    CookieManager.getInstance().flush()
                     val cookies = CookieManager.getInstance().getCookie(it)
                     if (!cookies.isNullOrEmpty()) {
                         getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
                             .edit()
                             .putString("session_cookie", cookies)
                             .apply()
+                        startLocationServiceIfPermitted()
                     }
                 }
             }
@@ -225,6 +274,19 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             startForegroundService(serviceIntent)
         } else {
             startService(serviceIntent)
+        }
+    }
+
+    private fun startLocationServiceIfPermitted() {
+        val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!fineGranted && !coarseGranted) return
+
+        val locIntent = Intent(this, BackgroundLocationService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(locIntent)
+        } else {
+            startService(locIntent)
         }
     }
 

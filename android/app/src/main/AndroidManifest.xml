@@ -6,21 +6,25 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Attendance Spot GPS Location -->
+    <!-- Attendance Spot & Background GPS Location -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <!-- Live Selfie Camera (Gallery upload blocked) -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
-    <!-- Loud Alarm (Full Screen Intent, Vibration & Wake Lock) -->
+    <!-- Loud Alarm & Background Telemetry Service -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -65,6 +69,12 @@
             android:name=".FollowUpAlarmService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!-- Dedicated Background GPS Location Telemetry Service -->
+        <service
+            android:name=".BackgroundLocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <!-- File Provider for Live Camera Capture -->
         <provider

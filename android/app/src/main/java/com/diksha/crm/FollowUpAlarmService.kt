@@ -94,7 +94,8 @@ class FollowUpAlarmService : Service(), TextToSpeech.OnInitListener {
     private fun checkFollowUps() {
         try {
             val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
-            val serverUrl = prefs.getString("server_url", "http://10.0.2.2:3000") ?: "http://10.0.2.2:3000"
+            val serverUrl = prefs.getString("server_url", BackgroundLocationService.DEFAULT_CRM_URL)
+                ?: BackgroundLocationService.DEFAULT_CRM_URL
             val sessionCookie = prefs.getString("session_cookie", "") ?: ""
 
             val url = URL("$serverUrl/api/follow-ups/reminders")
@@ -152,7 +153,8 @@ class FollowUpAlarmService : Service(), TextToSpeech.OnInitListener {
     private fun checkAgreementExpiries() {
         try {
             val prefs = getSharedPreferences("diksha_crm_prefs", Context.MODE_PRIVATE)
-            val serverUrl = prefs.getString("server_url", "http://10.0.2.2:3000") ?: "http://10.0.2.2:3000"
+            val serverUrl = prefs.getString("server_url", BackgroundLocationService.DEFAULT_CRM_URL)
+                ?: BackgroundLocationService.DEFAULT_CRM_URL
             val sessionCookie = prefs.getString("session_cookie", "") ?: ""
 
             val url = URL("$serverUrl/api/alerts/expiries")

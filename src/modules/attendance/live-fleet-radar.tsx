@@ -24,11 +24,13 @@ import {
   ChevronRight,
   Maximize2,
   Minimize2,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LiveFleetAgent } from '@/app/api/location/live/route';
 import { LocationBreadcrumb } from '@/app/api/location/history/route';
 import { useDemoData } from '@/modules/demo/demo-data-context';
+import { ANDROID_APK_DOWNLOAD_URL } from '@/lib/mobile-app';
 
 export function LiveFleetRadar() {
   const { showDemoData } = useDemoData();
@@ -688,10 +690,18 @@ export function LiveFleetRadar() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
               API Endpoint Active: <code>/api/location/ping</code>
             </span>
+            <a
+              href={ANDROID_APK_DOWNLOAD_URL}
+              download="Diksha-CRM-Mobile.apk"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-[#0f172a] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#1e293b] transition-colors shadow-2xs"
+            >
+              <Download className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span>Download Android APK</span>
+            </a>
           </div>
         </div>
       </div>

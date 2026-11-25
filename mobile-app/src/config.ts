@@ -3,7 +3,7 @@
  */
 export const APP_CONFIG = {
   // Update with your production domain or local IP when testing (e.g. http://192.168.1.5:3000)
-  API_BASE_URL: process.env.VITE_API_BASE_URL || 'https://crm.diksharealestate.com',
+  API_BASE_URL: process.env.VITE_API_BASE_URL || 'https://real-estate-pro-crm.vercel.app',
   
   // Tracking intervals
   TRACKING: {
