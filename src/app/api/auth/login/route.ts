@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const hasDatabaseUrl = !!process.env.DATABASE_URL;
+    const hasDatabaseUrl = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
     // 1. If DATABASE_URL is set (Local Postgres / Docker Postgres), authenticate directly

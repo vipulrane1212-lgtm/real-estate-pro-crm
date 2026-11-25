@@ -6,12 +6,19 @@ export function getDbPool(): Pool {
   if (!globalPool) {
     const connectionString =
       process.env.DATABASE_URL ||
+      process.env.POSTGRES_URL ||
       'postgresql://postgres:postgres@172.31.128.153:5432/diksha_crm';
+
+    const isLocalDb =
+      connectionString.includes('localhost') ||
+      connectionString.includes('127.0.0.1') ||
+      connectionString.includes('172.31.');
 
     globalPool = new Pool({
       connectionString,
       max: 10,
       idleTimeoutMillis: 30000,
+      ssl: isLocalDb ? undefined : { rejectUnauthorized: false },
     });
 
     globalPool.on('error', (err) => {
