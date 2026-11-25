@@ -238,7 +238,7 @@ export function FollowUpAlarmOverlay() {
         </div>
 
         {/* Client & Overdue Details */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4 max-h-[75dvh] overflow-y-auto">
           <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-600 font-medium">Scheduled Time:</span>

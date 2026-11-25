@@ -277,11 +277,11 @@ export function AttendanceManagement() {
       {/* Admin Controls & Tabs */}
       {isAdmin && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
               <button
                 onClick={() => setActiveTab('daily')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
                   activeTab === 'daily'
                     ? 'bg-slate-900 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
@@ -291,7 +291,7 @@ export function AttendanceManagement() {
               </button>
               <button
                 onClick={() => setActiveTab('monthly')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
                   activeTab === 'monthly'
                     ? 'bg-slate-900 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
@@ -301,7 +301,7 @@ export function AttendanceManagement() {
               </button>
               <button
                 onClick={() => setActiveTab('radar')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'radar'
                     ? 'bg-amber-600 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
@@ -373,8 +373,119 @@ export function AttendanceManagement() {
                     icon={UserCheck}
                   />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                  <>
+                    {/* Mobile Muster Roll Cards (< md) */}
+                    <div className="divide-y divide-slate-100 md:hidden">
+                      {attendanceList.map((rec) => {
+                        const isLate = rec.is_late || rec.status === 'late';
+                        return (
+                          <div key={rec.id} className="p-3.5 space-y-2.5 bg-white">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="font-bold text-sm text-slate-900 block">
+                                  {rec.employee?.profile?.full_name || 'Staff Member'}
+                                </span>
+                                <span className="text-[11px] text-slate-400">
+                                  {rec.employee?.designation || 'Sales Agent'}
+                                </span>
+                              </div>
+                              <span
+                                className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                  isLate
+                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                    : rec.status === 'present'
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    : 'bg-rose-50 text-rose-800 border-rose-300'
+                                }`}
+                              >
+                                {isLate ? 'Late' : rec.status}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5 text-xs">
+                              <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
+                                <span className="text-[10px] font-semibold uppercase text-slate-400 block mb-1">
+                                  Check-In
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {rec.check_in_selfie_url ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={rec.check_in_selfie_url}
+                                      alt="In"
+                                      onClick={() => setPreviewPhotoUrl(rec.check_in_selfie_url || null)}
+                                      className="h-9 w-9 rounded object-cover border border-slate-200 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-9 w-9 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                                      <Camera className="h-4 w-4" />
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-slate-900 block">
+                                      {rec.check_in
+                                        ? new Date(rec.check_in).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                                        : '—'}
+                                    </span>
+                                    {rec.check_in_latitude && rec.check_in_longitude && (
+                                      <a
+                                        href={`https://www.google.com/maps?q=${rec.check_in_latitude},${rec.check_in_longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] text-amber-700 font-semibold underline"
+                                      >
+                                        Map Pin
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
+                                <span className="text-[10px] font-semibold uppercase text-slate-400 block mb-1">
+                                  Check-Out
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {rec.check_out_selfie_url ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={rec.check_out_selfie_url}
+                                      alt="Out"
+                                      onClick={() => setPreviewPhotoUrl(rec.check_out_selfie_url || null)}
+                                      className="h-9 w-9 rounded object-cover border border-slate-200 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-9 w-9 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                                      <Camera className="h-4 w-4" />
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-slate-900 block">
+                                      {rec.check_out
+                                        ? new Date(rec.check_out).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                                        : 'Pending'}
+                                    </span>
+                                    {rec.check_out_latitude && rec.check_out_longitude && (
+                                      <a
+                                        href={`https://www.google.com/maps?q=${rec.check_out_latitude},${rec.check_out_longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] text-rose-700 font-semibold underline"
+                                      >
+                                        Map Pin
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full text-left text-xs">
                       <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                         <tr>
                           <th className="py-3 px-4">Employee</th>
@@ -521,7 +632,8 @@ export function AttendanceManagement() {
                         })}
                       </tbody>
                     </table>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -529,8 +641,8 @@ export function AttendanceManagement() {
 
           {/* Monthly Executive View */}
           {activeTab === 'monthly' && (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-6">
-              <div className="flex items-center justify-between mb-4">
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">Monthly Attendance Telemetry</h3>
                   <p className="text-xs text-slate-500">Aggregated muster totals for {selectedMonth}</p>
@@ -539,7 +651,7 @@ export function AttendanceManagement() {
                   size="sm"
                   onClick={handleExportExcel}
                   disabled={isExportingExcel}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs w-full sm:w-auto"
                 >
                   <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" />
                   Download Monthly .xlsx
@@ -553,30 +665,65 @@ export function AttendanceManagement() {
                   icon={UserCheck}
                 />
               ) : (
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                    <tr>
-                      <th className="py-3 px-4">Employee</th>
-                      <th className="py-3 px-4">Designation</th>
-                      <th className="py-3 px-4 text-center">Days Present</th>
-                      <th className="py-3 px-4 text-center">Days Late</th>
-                      <th className="py-3 px-4 text-center">Days Absent</th>
-                      <th className="py-3 px-4 text-right">Total Punches</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                <>
+                  {/* Mobile Monthly Cards (< md) */}
+                  <div className="space-y-2.5 md:hidden">
                     {monthlyData.summary.map((row) => (
-                      <tr key={row.employeeName} className="hover:bg-slate-50/80">
-                        <td className="py-3 px-4 font-bold text-slate-900">{row.employeeName}</td>
-                        <td className="py-3 px-4 text-slate-500">{row.designation}</td>
-                        <td className="py-3 px-4 text-center font-bold text-emerald-600">{row.daysPresent}</td>
-                        <td className="py-3 px-4 text-center font-bold text-amber-600">{row.daysLate}</td>
-                        <td className="py-3 px-4 text-center font-bold text-rose-600">{row.daysAbsent}</td>
-                        <td className="py-3 px-4 text-right font-mono font-bold">{row.totalLogged}</td>
-                      </tr>
+                      <div key={row.employeeName} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-bold text-sm text-slate-900">{row.employeeName}</div>
+                            <div className="text-[11px] text-slate-500">{row.designation}</div>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-slate-700">
+                            {row.totalLogged} punches
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 rounded-lg bg-white border border-slate-200 p-2 text-center text-xs">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Present</span>
+                            <strong className="text-emerald-600">{row.daysPresent}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Late</span>
+                            <strong className="text-amber-600">{row.daysLate}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Absent</span>
+                            <strong className="text-rose-600">{row.daysAbsent}</strong>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        <tr>
+                          <th className="py-3 px-4">Employee</th>
+                          <th className="py-3 px-4">Designation</th>
+                          <th className="py-3 px-4 text-center">Days Present</th>
+                          <th className="py-3 px-4 text-center">Days Late</th>
+                          <th className="py-3 px-4 text-center">Days Absent</th>
+                          <th className="py-3 px-4 text-right">Total Punches</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                        {monthlyData.summary.map((row) => (
+                          <tr key={row.employeeName} className="hover:bg-slate-50/80">
+                            <td className="py-3 px-4 font-bold text-slate-900">{row.employeeName}</td>
+                            <td className="py-3 px-4 text-slate-500">{row.designation}</td>
+                            <td className="py-3 px-4 text-center font-bold text-emerald-600">{row.daysPresent}</td>
+                            <td className="py-3 px-4 text-center font-bold text-amber-600">{row.daysLate}</td>
+                            <td className="py-3 px-4 text-center font-bold text-rose-600">{row.daysAbsent}</td>
+                            <td className="py-3 px-4 text-right font-mono font-bold">{row.totalLogged}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           )}

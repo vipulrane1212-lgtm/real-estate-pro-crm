@@ -175,18 +175,18 @@ export function SiteVisitsManagement() {
 
       {/* Tabs and Search Bar */}
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-medium">
+        <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-medium overflow-x-auto no-scrollbar">
           <button
             onClick={() => setFilterTab('today')}
-            className={`rounded-md px-3 py-1.5 transition cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition cursor-pointer ${
               filterTab === 'today' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Today's Visits
+            Today&apos;s Visits
           </button>
           <button
             onClick={() => setFilterTab('upcoming')}
-            className={`rounded-md px-3 py-1.5 transition cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition cursor-pointer ${
               filterTab === 'upcoming' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -194,7 +194,7 @@ export function SiteVisitsManagement() {
           </button>
           <button
             onClick={() => setFilterTab('completed')}
-            className={`rounded-md px-3 py-1.5 transition cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition cursor-pointer ${
               filterTab === 'completed' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -202,7 +202,7 @@ export function SiteVisitsManagement() {
           </button>
           <button
             onClick={() => setFilterTab('all')}
-            className={`rounded-md px-3 py-1.5 transition cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition cursor-pointer ${
               filterTab === 'all' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >

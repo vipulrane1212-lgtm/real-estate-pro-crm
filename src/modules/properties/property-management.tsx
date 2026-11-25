@@ -297,19 +297,21 @@ export function PropertyManagement() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex rounded-lg border border-slate-300 bg-white p-0.5 shadow-2xs">
             <button
               onClick={() => setViewMode('grid')}
-              className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#0f172a] text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-[#0f172a] text-white' : 'text-slate-500 hover:text-slate-900'}`}
               title="Grid View"
+              aria-label="Grid View"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`rounded-md p-1.5 transition-colors ${viewMode === 'table' ? 'bg-[#0f172a] text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md transition-colors cursor-pointer ${viewMode === 'table' ? 'bg-[#0f172a] text-white' : 'text-slate-500 hover:text-slate-900'}`}
               title="Table View"
+              aria-label="Table View"
             >
               <List className="h-4 w-4" />
             </button>
@@ -590,17 +592,17 @@ export function PropertyManagement() {
                           setSelectedRoomFilter('all');
                           setActiveMediaIndex(0);
                         }}
-                        className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                        className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                         title="Open Media & Room Explorer"
                       >
-                        <Eye className="h-3.5 w-3.5" />
+                        <Eye className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                       </button>
                       <button
                         onClick={() => setUploadDocProperty(property)}
-                        className="rounded-md p-1.5 text-slate-500 hover:bg-amber-50 hover:text-amber-800 transition-colors"
+                        className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-500 hover:bg-amber-50 hover:text-amber-800 transition-colors cursor-pointer"
                         title="Upload Property Documents"
                       >
-                        <FileText className="h-3.5 w-3.5" />
+                        <FileText className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                       </button>
                       {isOwner && (
                         <>
@@ -609,17 +611,17 @@ export function PropertyManagement() {
                               setEditingProperty(property);
                               setIsModalOpen(true);
                             }}
-                            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                            className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                             title="Edit Property"
                           >
-                            <Edit2 className="h-3.5 w-3.5" />
+                            <Edit2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(property.id, property.title)}
-                            className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors"
+                            className="flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
                             title="Delete Property"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                           </button>
                         </>
                       )}
@@ -631,10 +633,132 @@ export function PropertyManagement() {
           })}
         </div>
       ) : (
-        /* Table View */
-        <Card className="overflow-hidden p-0 bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+        /* Table View: Mobile Cards (< md) + Desktop Table (>= md) */
+        <>
+          <div className="space-y-3 md:hidden">
+            {properties.map((p) => {
+              const photoCount = p.photos?.length || 0;
+              const videoCount = p.videos?.length || (p.video_url ? 1 : 0);
+              const primaryPhoto = p.photos?.[0]
+                ? typeof p.photos[0] === 'string'
+                  ? p.photos[0]
+                  : p.photos[0].url
+                : null;
+
+              return (
+                <Card key={p.id} className="p-3.5 bg-white">
+                  <div className="flex items-start gap-3">
+                    <div
+                      onClick={() => {
+                        setGalleryProperty(p);
+                        setSelectedRoomFilter('all');
+                        setActiveMediaIndex(0);
+                      }}
+                      className="h-16 w-20 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200 cursor-pointer"
+                    >
+                      {primaryPhoto ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={primaryPhoto} alt={p.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <Building2 className="h-6 w-6 text-slate-400" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4
+                          onClick={() => {
+                            setGalleryProperty(p);
+                            setSelectedRoomFilter('all');
+                            setActiveMediaIndex(0);
+                          }}
+                          className="text-sm font-bold text-slate-900 line-clamp-1 cursor-pointer"
+                        >
+                          {p.title}
+                        </h4>
+                        <Badge variant={STATUS_VARIANTS[p.status]} className="capitalize shrink-0 text-[10px]">
+                          {p.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs font-extrabold text-amber-700 mt-0.5">
+                        {formatPriceINR(Number(p.price))}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                        {TYPE_LABELS[p.property_type] || p.property_type}
+                        {p.bhk ? ` • ${p.bhk}` : ''}
+                        {p.size_sqft ? ` (${p.size_sqft} Sq.Ft)` : ''}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {p.location || p.city}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          setGalleryProperty(p);
+                          setSelectedRoomFilter('all');
+                          setActiveMediaIndex(0);
+                        }}
+                        className="inline-flex min-h-[34px] items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                      >
+                        <ImageIcon className="h-3.5 w-3.5 text-amber-600" />
+                        {photoCount}
+                        {videoCount > 0 ? ` • ${videoCount}V` : ''}
+                      </button>
+                      {p.view_360_url && (
+                        <button
+                          onClick={() => setViewing360Property(p)}
+                          className="inline-flex min-h-[34px] items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-[11px] font-semibold text-amber-800"
+                        >
+                          <Compass className="h-3.5 w-3.5" /> 360°
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setUploadDocProperty(p)}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600"
+                        title="Upload Documents"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </button>
+                      {isOwner && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingProperty(p);
+                              setIsModalOpen(true);
+                            }}
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600"
+                            title="Edit"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id, p.title)}
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Card className="hidden md:block overflow-hidden p-0 bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 bg-slate-50 font-semibold text-slate-600 uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-3">Property</th>
@@ -798,6 +922,7 @@ export function PropertyManagement() {
             </table>
           </div>
         </Card>
+        </>
       )}
 
       {/* Property Create/Edit Modal */}
@@ -845,14 +970,14 @@ export function PropertyManagement() {
         {galleryProperty && (
           <div className="space-y-4">
             {/* Filter Pills: All Media, Living Room, Bedroom, Kitchen, Videos, etc. */}
-            <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap border-b border-slate-200 pb-3">
               <button
                 type="button"
                 onClick={() => {
                   setSelectedRoomFilter('all');
                   setActiveMediaIndex(0);
                 }}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 sm:py-1 text-xs font-semibold transition-colors cursor-pointer ${
                   selectedRoomFilter === 'all'
                     ? 'bg-[#0f172a] text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -871,7 +996,7 @@ export function PropertyManagement() {
                       setSelectedRoomFilter(room);
                       setActiveMediaIndex(0);
                     }}
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full px-3 py-1.5 sm:py-1 text-xs font-medium transition-colors cursor-pointer ${
                       selectedRoomFilter === room
                         ? 'bg-amber-600 text-white font-semibold shadow-xs'
                         : 'bg-amber-50 text-amber-900 border border-amber-200/70 hover:bg-amber-100'
@@ -886,7 +1011,7 @@ export function PropertyManagement() {
 
             {/* Main Stage Display (Photo / Video / 360 Tour) */}
             {activeMedia ? (
-              <div className="relative rounded-2xl bg-black overflow-hidden flex items-center justify-center min-h-[380px] max-h-[520px]">
+              <div className="relative rounded-2xl bg-black overflow-hidden flex items-center justify-center min-h-[240px] sm:min-h-[380px] max-h-[60dvh] sm:max-h-[520px]">
                 {activeMedia.type === 'photo' && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

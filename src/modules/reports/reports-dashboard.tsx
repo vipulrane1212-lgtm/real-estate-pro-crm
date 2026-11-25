@@ -181,7 +181,7 @@ export function ReportsDashboard() {
             </Button>
 
             {exportOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-lg border border-slate-200 bg-white py-1 shadow-lg z-30">
+              <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-200 bg-white py-1 shadow-lg z-30">
                 <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                   Select Dataset
                 </div>
@@ -459,9 +459,52 @@ export function ReportsDashboard() {
           </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto">
+        <div className="mt-5">
           {data?.agentPerformance && data.agentPerformance.length > 0 ? (
-            <table className="w-full text-left text-xs">
+            <>
+              {/* Mobile Agent Performance Cards (< md) */}
+              <div className="space-y-3 md:hidden">
+                {data.agentPerformance.map((agent, index) => (
+                  <div key={agent.id} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 font-bold text-xs border border-amber-300">
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-slate-900 truncate">{agent.name}</div>
+                          <div className="text-[11px] text-slate-500 truncate">{agent.designation}</div>
+                        </div>
+                      </div>
+                      <span className="font-extrabold text-xs text-emerald-700 shrink-0">
+                        {formatCurrencyINR(agent.totalBrokerage)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1.5 rounded-lg bg-white border border-slate-200 p-2 text-center text-[11px]">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Leads</span>
+                        <strong className="text-slate-900">{agent.leadsAssigned}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Calls</span>
+                        <strong className="text-slate-900">{agent.callsMade}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Visits</span>
+                        <strong className="text-slate-900">{agent.visitsCompleted}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Deals</span>
+                        <strong className="text-emerald-700">{agent.dealsClosed}</strong>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-3">Rank</th>
@@ -514,6 +557,8 @@ export function ReportsDashboard() {
                 })}
               </tbody>
             </table>
+              </div>
+            </>
           ) : (
             <EmptyState
               title="No data yet"

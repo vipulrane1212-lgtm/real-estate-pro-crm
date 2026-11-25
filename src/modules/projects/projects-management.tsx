@@ -177,11 +177,11 @@ export function ProjectsManagement() {
       )}
 
       {/* Filter Tabs & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
               statusFilter === 'all'
                 ? 'bg-slate-900 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -191,7 +191,7 @@ export function ProjectsManagement() {
           </button>
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
               statusFilter === 'pending'
                 ? 'bg-amber-500 text-white'
                 : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
@@ -202,7 +202,7 @@ export function ProjectsManagement() {
           </button>
           <button
             onClick={() => setStatusFilter('approved')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
               statusFilter === 'approved'
                 ? 'bg-emerald-600 text-white'
                 : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -213,7 +213,7 @@ export function ProjectsManagement() {
           </button>
           <button
             onClick={() => setStatusFilter('rejected')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
               statusFilter === 'rejected'
                 ? 'bg-rose-600 text-white'
                 : 'bg-rose-50 text-rose-700 hover:bg-rose-100'

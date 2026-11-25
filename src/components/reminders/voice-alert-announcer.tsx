@@ -66,39 +66,41 @@ export function VoiceAlertAnnouncer() {
   if (!currentBannerAlert) return null;
 
   return (
-    <div className="bg-amber-600 text-white px-4 py-2 text-xs flex items-center justify-between shadow-md relative z-40">
-      <div className="flex items-center gap-2 max-w-3xl truncate">
-        <ShieldAlert className="h-4 w-4 shrink-0 text-amber-100 animate-pulse" />
-        <span className="font-bold uppercase tracking-wider bg-amber-700/60 px-1.5 py-0.5 rounded text-[10px]">
-          Renewal Alert
-        </span>
-        <span className="truncate">
-          {currentBannerAlert.spoken_text}
-        </span>
+    <div className="bg-amber-600 text-white px-3 sm:px-4 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-md relative z-40">
+      <div className="flex items-start sm:items-center gap-2 min-w-0">
+        <ShieldAlert className="h-4 w-4 shrink-0 text-amber-100 animate-pulse mt-0.5 sm:mt-0" />
+        <div className="min-w-0 flex-1">
+          <span className="inline-block font-bold uppercase tracking-wider bg-amber-700/60 px-1.5 py-0.5 rounded text-[10px] mr-1.5">
+            Renewal Alert
+          </span>
+          <span className="leading-snug break-words">
+            {currentBannerAlert.spoken_text}
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-end gap-2 shrink-0">
         <Link
           href="/documents"
-          className="text-white hover:underline font-semibold inline-flex items-center gap-0.5 ml-2"
+          className="text-white hover:underline font-semibold inline-flex items-center gap-0.5 py-1 px-1.5 rounded bg-amber-700/40 sm:bg-transparent whitespace-nowrap"
         >
           View Expiries <ArrowRight className="h-3 w-3" />
         </Link>
 
         <button
           onClick={() => setIsVoiceMuted(!isVoiceMuted)}
-          className="p-1 hover:bg-amber-700 rounded text-amber-100 hover:text-white"
+          className="p-1.5 hover:bg-amber-700 rounded text-amber-100 hover:text-white cursor-pointer"
           title={isVoiceMuted ? 'Unmute voice alerts' : 'Mute voice alerts'}
         >
-          {isVoiceMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+          {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </button>
 
         <button
           onClick={() => setCurrentBannerAlert(null)}
-          className="p-1 hover:bg-amber-700 rounded text-amber-100 hover:text-white"
+          className="p-1.5 hover:bg-amber-700 rounded text-amber-100 hover:text-white cursor-pointer"
           title="Dismiss banner"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
     </div>

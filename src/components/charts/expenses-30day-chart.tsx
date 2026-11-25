@@ -140,12 +140,14 @@ export function Expenses30DayChart({
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100 pt-2 mt-1">
-        <span>{data[0]?.label || '30 days ago'}</span>
-        <span className="flex items-center gap-1 text-slate-500">
-          <Calendar className="h-3 w-3" /> Click any bar to filter expenses for that day
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-[11px] text-slate-400 border-t border-slate-100 pt-2.5 mt-1">
+        <div className="flex items-center justify-between sm:contents">
+          <span className="whitespace-nowrap">{data[0]?.label || '30 days ago'}</span>
+          <span className="whitespace-nowrap sm:order-3">Today ({data[data.length - 1]?.label || 'Now'})</span>
+        </div>
+        <span className="flex items-center gap-1 text-slate-500 sm:order-2">
+          <Calendar className="h-3 w-3 shrink-0" /> Tap any bar to filter expenses for that day
         </span>
-        <span>Today ({data[data.length - 1]?.label || 'Now'})</span>
       </div>
     </div>
   );

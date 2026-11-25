@@ -206,8 +206,90 @@ export function DocumentsManagement() {
             icon={FileText}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <>
+            {/* Mobile Document Cards (< md) */}
+            <div className="divide-y divide-slate-100 md:hidden">
+              {documents.map((doc) => {
+                const typeMeta = TYPE_LABELS[doc.document_type] || TYPE_LABELS.other;
+                const isExpiringSoon =
+                  doc.expiry_date &&
+                  new Date(doc.expiry_date) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) &&
+                  new Date(doc.expiry_date) >= new Date();
+                const isExpired = doc.expiry_date && new Date(doc.expiry_date) < new Date();
+
+                return (
+                  <div key={doc.id} className="p-3.5 space-y-2.5 bg-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200 mt-0.5">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-sm text-slate-900 truncate">{doc.title}</h4>
+                          <p className="text-[11px] text-slate-400">
+                            Added {new Date(doc.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {doc.uploader?.full_name ? ` • ${doc.uploader.full_name}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-semibold shrink-0 ${typeMeta.color}`}>
+                        {typeMeta.label}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                      <span className="truncate">
+                        {doc.lead
+                          ? `Lead: ${doc.lead.full_name}`
+                          : doc.property
+                          ? `Property: ${doc.property.title}`
+                          : doc.deal
+                          ? `Deal #${doc.deal.deal_number}`
+                          : 'General Office'}
+                      </span>
+
+                      {doc.expiry_date && (
+                        <span
+                          className={`text-[11px] font-semibold ${
+                            isExpired ? 'text-red-600' : isExpiringSoon ? 'text-amber-600' : 'text-slate-600'
+                          }`}
+                        >
+                          Exp: {new Date(doc.expiry_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {isExpired ? ' (Expired)' : isExpiringSoon ? ' (Soon)' : ''}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        View / Download
+                      </a>
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={deletingId === doc.id}
+                          onClick={() => handleDelete(doc.id, doc.title)}
+                          className="text-red-600 hover:bg-red-50"
+                          aria-label="Delete document"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-4">Document Details</th>
@@ -350,6 +432,7 @@ export function DocumentsManagement() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

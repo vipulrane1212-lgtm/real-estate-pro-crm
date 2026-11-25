@@ -74,8 +74,80 @@ export function NeuralTreeGraph({
   }, [agentNodes]);
 
   return (
-    <div className="w-full bg-white text-slate-900 rounded-2xl p-6 border border-slate-200 shadow-sm overflow-x-auto select-none">
-      <div className="min-w-[900px] max-w-6xl mx-auto flex flex-col items-center">
+    <div className="w-full bg-white text-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm">
+      {/* MOBILE HIERARCHICAL VIEW (< md): No 900px horizontal cutoff */}
+      <div className="space-y-4 md:hidden">
+        <button
+          onClick={() => onSelectNode(hubNode)}
+          className="w-full p-3.5 bg-gradient-to-r from-amber-50 via-white to-amber-50 border-2 border-amber-500 rounded-xl shadow-xs flex items-center gap-3 text-left cursor-pointer"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white text-lg">
+            🏢
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold text-amber-950 flex items-center justify-between gap-2">
+              <span className="truncate">Diksha HQ (Owner)</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full border border-amber-300 uppercase shrink-0">
+                Hub
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-600 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+              <span>📞 <strong>{hubNode?.metrics?.callsToday || 119}</strong> Calls</span>
+              <span>🚗 <strong>{hubNode?.metrics?.visitsToday || 13}</strong> Visits</span>
+              <span>💰 <strong className="text-amber-700">{formatINR(hubNode?.metrics?.pipelineValue || 723100000)}</strong></span>
+            </div>
+          </div>
+        </button>
+
+        <div className="space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            Select Team Member ({agentNodes.length})
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {agentNodes.map((agent) => {
+              const isSelected = activeAgent?.id === agent.id;
+              return (
+                <button
+                  key={agent.id}
+                  onClick={() => onSelectNode(agent)}
+                  className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-amber-500 bg-amber-50/70 ring-1 ring-amber-400'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                          agent.healthStatus === 'thriving'
+                            ? 'bg-emerald-500'
+                            : agent.healthStatus === 'critical'
+                            ? 'bg-red-500'
+                            : 'bg-amber-500'
+                        }`}
+                      />
+                      <span className="font-bold text-xs text-slate-900 truncate">{agent.label}</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-amber-800 shrink-0">
+                      {formatINR(agent.metrics?.pipelineValue || 0)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-3 text-[11px] text-slate-600">
+                    <span>📞 {agent.metrics?.callsToday || 0} Calls</span>
+                    <span>🚗 {agent.metrics?.visitsToday || 0} Visits</span>
+                    <span>🔥 {agent.details?.hotLeads?.length || agent.metrics?.totalLeads || 0} Leads</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* DESKTOP CIRCUIT DIAGRAM (>= md) */}
+      <div className="hidden md:block overflow-x-auto select-none">
+        <div className="min-w-[900px] max-w-6xl mx-auto flex flex-col items-center">
         {/* ========================================================= */}
         {/* LEVEL 1: ROOT NODE (Diksha HQ - Owner Node)               */}
         {/* ========================================================= */}
@@ -297,6 +369,7 @@ export function NeuralTreeGraph({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

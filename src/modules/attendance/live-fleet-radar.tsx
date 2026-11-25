@@ -462,7 +462,7 @@ export function LiveFleetRadar() {
           </div>
 
           {/* Agent Cards List */}
-          <div className="space-y-2.5 max-h-[560px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[300px] lg:max-h-[560px] overflow-y-auto pr-1">
             {filteredAgents.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-xs text-slate-500">
                 No active field agents match the selected filter.
@@ -561,12 +561,12 @@ export function LiveFleetRadar() {
         {/* Right: Interactive Map Canvas (8 cols) */}
         <div className="lg:col-span-8 flex flex-col gap-3">
           {/* Map Container */}
-          <div className="relative w-full h-[580px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
+          <div className="relative w-full h-[360px] sm:h-[460px] lg:h-[580px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
             <div ref={mapContainerRef} className="w-full h-full z-0" />
 
             {/* Selected Agent Floating Overlay on Map */}
             {selectedAgent && !isReplaying && (
-              <div className="absolute top-4 left-4 z-20 max-w-sm bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-3.5 shadow-lg">
+              <div className="absolute top-3 left-3 right-3 sm:right-auto z-20 sm:max-w-sm bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-3 sm:p-3.5 shadow-lg">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">

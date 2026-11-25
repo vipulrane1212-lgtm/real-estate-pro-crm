@@ -60,7 +60,7 @@ export function EmployeeLiveTracker({
       {/* ========================================================= */}
       {/* 1. AGENT IDENTITY & EXECUTIVE LIVE STATUS BANNER          */}
       {/* ========================================================= */}
-      <div className="p-6 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
         <div className="flex items-start md:items-center gap-4">
           {/* Avatar with Status Ring */}
           <div className="relative shrink-0">
@@ -186,24 +186,24 @@ export function EmployeeLiveTracker({
 
         {/* Quick Action Contacts: WhatsApp & Direct Call */}
         {!isHub && (
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 shrink-0 w-full md:w-auto">
             <a
               href={`https://wa.me/${(node.phone || '919839012005').replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(
                 node.label
               )},%20reviewing%20your%20live%20performance%20on%20Diksha%20CRM.`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer whitespace-nowrap"
             >
-              <MessageSquare className="w-4 h-4 fill-white" />
-              <span>WhatsApp Agent</span>
+              <MessageSquare className="w-4 h-4 fill-white shrink-0" />
+              <span>WhatsApp</span>
             </a>
 
             <a
               href={`tel:${node.phone || '+919839012005'}`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
             >
-              <PhoneCall className="w-4 h-4 text-sky-600" />
+              <PhoneCall className="w-4 h-4 text-sky-600 shrink-0" />
               <span>Call Agent</span>
             </a>
           </div>
@@ -276,8 +276,8 @@ export function EmployeeLiveTracker({
       {/* ========================================================= */}
       {/* 3. WORK SECTION TABS                                      */}
       {/* ========================================================= */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-6 py-2 bg-slate-50">
-        <div className="flex items-center gap-2 overflow-x-auto py-1">
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-2 bg-slate-50">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full">
           <button
             onClick={() => setActiveTab('calls')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${

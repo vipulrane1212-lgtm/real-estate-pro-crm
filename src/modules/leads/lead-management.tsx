@@ -396,17 +396,17 @@ export function LeadManagement() {
   return (
     <div className="space-y-5 w-full min-w-0">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               Unified Lead Inbox
             </h1>
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 whitespace-nowrap">
               {leads.length} Leads
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500">
             Source tracking, pipeline Kanban, quick assignment, and client conversions
           </p>
         </div>
@@ -418,7 +418,8 @@ export function LeadManagement() {
             size="sm"
             onClick={handleRefresh}
             isLoading={isRefreshing}
-            className="text-slate-600"
+            className="text-slate-600 min-w-[38px]"
+            aria-label="Refresh leads"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -431,7 +432,8 @@ export function LeadManagement() {
             className="gap-1.5"
           >
             <Upload className="h-4 w-4" />
-            Import CSV
+            <span className="hidden xs:inline sm:inline">Import CSV</span>
+            <span className="xs:hidden sm:hidden">Import</span>
           </Button>
 
           {/* Export CSV */}
@@ -442,38 +444,41 @@ export function LeadManagement() {
             className="gap-1.5"
           >
             <Download className="h-4 w-4" />
-            Export CSV
+            <span className="hidden xs:inline sm:inline">Export CSV</span>
+            <span className="xs:hidden sm:hidden">Export</span>
           </Button>
 
           {/* View mode toggle */}
           <div className="flex items-center rounded-lg border border-slate-300 bg-white p-0.5">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`rounded-md p-1.5 transition cursor-pointer ${
+              className={`flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md transition cursor-pointer ${
                 viewMode === 'kanban' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Kanban Board View"
+              aria-label="Kanban Board View"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`rounded-md p-1.5 transition cursor-pointer ${
+              className={`flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md transition cursor-pointer ${
                 viewMode === 'list' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
               }`}
               title="List Table View"
+              aria-label="List Table View"
             >
               <List className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Kanban horizontal navigation scroll buttons */}
+          {/* Kanban horizontal navigation scroll buttons (desktop/tablet) */}
           {viewMode === 'kanban' && (
-            <div className="flex items-center rounded-lg border border-slate-300 bg-white p-0.5">
+            <div className="hidden sm:flex items-center rounded-lg border border-slate-300 bg-white p-0.5">
               <button
                 type="button"
                 onClick={() => scrollKanban('left')}
-                className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
                 title="Scroll Stages Left"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -481,7 +486,7 @@ export function LeadManagement() {
               <button
                 type="button"
                 onClick={() => scrollKanban('right')}
-                className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
                 title="Scroll Stages Right"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -495,7 +500,7 @@ export function LeadManagement() {
               setEditingLead(null);
               setIsCreateModalOpen(true);
             }}
-            className="bg-amber-600 text-white hover:bg-amber-700 gap-1.5 shadow-sm"
+            className="bg-amber-600 text-white hover:bg-amber-700 gap-1.5 shadow-sm flex-1 sm:flex-none"
           >
             <Plus className="h-4 w-4" />
             Add Lead
@@ -504,15 +509,15 @@ export function LeadManagement() {
       </div>
 
       {/* Quick Channel Inflow Filter Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 text-xs">
-        <span className="text-slate-400 font-medium shrink-0 mr-1">Inflow Channel:</span>
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5 text-xs">
+        <span className="text-slate-400 font-medium shrink-0 mr-1">Inflow:</span>
         {SOURCE_CHIPS.map((chip) => {
           const isActive = sourceFilter === chip.id;
           return (
             <button
               key={chip.id}
               onClick={() => setSourceFilter(chip.id)}
-              className={`rounded-full px-3 py-1 font-semibold transition shrink-0 cursor-pointer ${
+              className={`rounded-full px-3 py-1.5 font-semibold transition shrink-0 cursor-pointer whitespace-nowrap ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -525,12 +530,12 @@ export function LeadManagement() {
       </div>
 
       {/* Per-Employee Workload Bar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-2 text-xs">
-        <span className="font-semibold text-slate-700">Team Workload:</span>
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 sm:px-4 py-2.5 text-xs">
+        <span className="font-semibold text-slate-700 shrink-0">Team Workload:</span>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
           <button
             onClick={() => setEmployeeFilter(employeeFilter === 'unassigned' ? 'all' : 'unassigned')}
-            className={`rounded-md px-2 py-0.5 font-medium transition cursor-pointer ${
+            className={`rounded-md px-2.5 py-1 font-medium transition cursor-pointer shrink-0 whitespace-nowrap ${
               employeeFilter === 'unassigned'
                 ? 'bg-amber-600 text-white'
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -545,7 +550,7 @@ export function LeadManagement() {
               <button
                 key={emp.id}
                 onClick={() => setEmployeeFilter(isEmpActive ? 'all' : emp.id)}
-                className={`rounded-md px-2 py-0.5 font-medium transition cursor-pointer ${
+                className={`rounded-md px-2.5 py-1 font-medium transition cursor-pointer shrink-0 whitespace-nowrap ${
                   isEmpActive
                     ? 'bg-slate-900 text-white'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -558,9 +563,9 @@ export function LeadManagement() {
           {employeeFilter !== 'all' && (
             <button
               onClick={() => setEmployeeFilter('all')}
-              className="text-slate-500 hover:text-slate-800 text-[11px] underline ml-1 cursor-pointer"
+              className="text-slate-500 hover:text-slate-800 text-[11px] underline ml-1 shrink-0 whitespace-nowrap cursor-pointer"
             >
-              Clear employee filter
+              Clear filter
             </button>
           )}
         </div>
@@ -683,20 +688,46 @@ export function LeadManagement() {
         />
       ) : viewMode === 'kanban' ? (
         /* KANBAN BOARD */
-        <div
-          ref={kanbanRef}
-          className="flex gap-4 overflow-x-auto pb-6 pt-1 w-full min-w-0 scroll-smooth"
-        >
-          {STATUS_COLUMNS.map((col) => {
-            const columnLeads = leads.filter((l) => l.status === col.id);
+        <div className="space-y-2.5">
+          {/* Mobile Stage Quick-Jump Strip */}
+          <div className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
+            {STATUS_COLUMNS.map((col) => {
+              const count = leads.filter((l) => l.status === col.id).length;
+              return (
+                <button
+                  key={col.id}
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById(`kanban-col-${col.id}`);
+                    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                  }}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 shadow-2xs active:bg-slate-100 whitespace-nowrap cursor-pointer"
+                >
+                  <span className={`h-2 w-2 rounded-full ${col.dotColor}`} />
+                  <span>{col.label}</span>
+                  <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-600">
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-            return (
-              <div
-                key={col.id}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, col.id)}
-                className="flex w-[295px] shrink-0 flex-col rounded-xl border border-slate-200 bg-slate-100/60 shadow-sm"
-              >
+          <div
+            ref={kanbanRef}
+            className="flex gap-3 sm:gap-4 overflow-x-auto pb-6 pt-1 w-full min-w-0 scroll-smooth snap-x snap-mandatory md:snap-none"
+          >
+            {STATUS_COLUMNS.map((col) => {
+              const columnLeads = leads.filter((l) => l.status === col.id);
+
+              return (
+                <div
+                  key={col.id}
+                  id={`kanban-col-${col.id}`}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, col.id)}
+                  className="flex w-[86vw] max-w-[330px] sm:w-[295px] shrink-0 snap-center flex-col rounded-xl border border-slate-200 bg-slate-100/60 shadow-sm"
+                >
                 {/* Column Header */}
                 <div className={`flex items-center justify-between rounded-t-xl border-b p-3 ${col.headerColor}`}>
                   <div className="flex items-center gap-2">
@@ -829,12 +860,162 @@ export function LeadManagement() {
               </div>
             );
           })}
+          </div>
         </div>
       ) : (
-        /* LIST TABLE VIEW */
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+        /* LIST VIEW: Mobile Cards (< md) + Desktop Table (>= md) */
+        <>
+          <div className="space-y-3 md:hidden">
+            {leads.map((lead) => {
+              const isSelected = selectedLeadIds.has(lead.id);
+              return (
+                <div
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className={`rounded-xl border bg-white p-3.5 shadow-2xs transition cursor-pointer ${
+                    isSelected ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-slate-200'
+                  }`}
+                >
+                  {/* Top row: Checkbox, ID, Source & Type */}
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                    <div className="flex items-center gap-2 min-w-0" onClick={(e) => toggleSelectLead(lead.id, e)}>
+                      <button type="button" className="p-1 -ml-1 text-slate-400 hover:text-amber-600 cursor-pointer">
+                        {isSelected ? (
+                          <CheckSquare className="h-4.5 w-4.5 text-amber-600" />
+                        ) : (
+                          <Square className="h-4.5 w-4.5" />
+                        )}
+                      </button>
+                      <span className="font-mono text-[11px] font-semibold text-slate-400">
+                        #{lead.lead_number}
+                      </span>
+                      <span
+                        className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap ${getSourceBadgeClass(
+                          lead.source
+                        )}`}
+                      >
+                        {formatSourceName(lead.source)}
+                      </span>
+                    </div>
+
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700 shrink-0">
+                      {lead.lead_type}
+                    </span>
+                  </div>
+
+                  {/* Client Info & Quick Call */}
+                  <div className="mt-2.5 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">{lead.full_name}</h4>
+                      {(lead.requirement || lead.location || lead.preferred_location) && (
+                        <p className="mt-0.5 text-xs text-slate-600 truncate">
+                          {lead.requirement || 'Requirement open'}
+                          {lead.location || lead.preferred_location
+                            ? ` • ${lead.location || lead.preferred_location}`
+                            : ''}
+                        </p>
+                      )}
+                      {(lead.budget_min || lead.budget_max) && (
+                        <p className="mt-1 text-xs font-semibold text-amber-700">
+                          {lead.budget_min ? formatCurrencyINR(Number(lead.budget_min)) : '₹0'} –{' '}
+                          {lead.budget_max ? formatCurrencyINR(Number(lead.budget_max)) : 'Open'}
+                        </p>
+                      )}
+                    </div>
+
+                    <a
+                      href={`tel:${lead.phone}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
+                    >
+                      <Phone className="h-3.5 w-3.5 text-emerald-600" />
+                      Call
+                    </a>
+                  </div>
+
+                  {/* Interactive Controls: Status, Assign & Actions */}
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-2.5" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={lead.status}
+                      onChange={(e) => handleLeadStatusChange(lead.id, e.target.value as LeadStatus)}
+                      className="min-h-[36px] w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-800 focus:outline-none"
+                    >
+                      {STATUS_COLUMNS.map((st) => (
+                        <option key={st.id} value={st.id}>
+                          {st.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {effectiveIsAdmin ? (
+                      <select
+                        value={lead.assigned_to || ''}
+                        onChange={(e) => handleSingleAssign(lead.id, e.target.value)}
+                        className={`min-h-[36px] w-full rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer ${
+                          !lead.assigned_to
+                            ? 'border border-amber-300 bg-amber-50 text-amber-900'
+                            : 'border border-slate-200 bg-white text-slate-700'
+                        }`}
+                      >
+                        <option value="">+ Assign Agent</option>
+                        {employees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.profile?.full_name || 'Agent'}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setIsCreateModalOpen(true);
+                          }}
+                          className="flex-1 text-slate-700"
+                        >
+                          <Edit className="h-3.5 w-3.5" /> Edit
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {effectiveIsAdmin && (
+                    <div className="mt-2 flex items-center justify-between gap-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                      <span className="font-mono text-[11px] text-slate-400">{lead.phone}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setIsCreateModalOpen(true);
+                          }}
+                          className="text-slate-600"
+                        >
+                          <Edit className="h-3.5 w-3.5" /> Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteLead(lead.id, lead.full_name)}
+                          className="text-red-600 hover:bg-red-50"
+                          aria-label="Delete lead"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="py-3 pl-4 pr-2 w-10">
@@ -990,11 +1171,12 @@ export function LeadManagement() {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {/* Floating Bulk Action Bar */}
       {selectedLeadIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-3 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-20 lg:bottom-6 left-1/2 z-40 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-2xl flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-3.5 sm:px-5 py-3 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-slate-950">
               {selectedLeadIds.size}

@@ -288,62 +288,62 @@ export function EmployeeManagement() {
       )}
 
       {/* Real-Time Daily Activity Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
               Leads Assigned Today
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
               <Users className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
+          <div className="mt-2 sm:mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-slate-900">{todayTotals.leadsAssigned}</span>
             <span className="text-xs text-slate-500">across team</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
               Calls Logged Today
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
               <PhoneCall className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
+          <div className="mt-2 sm:mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-slate-900">{todayTotals.callsLogged}</span>
             <span className="text-xs text-slate-500">client interactions</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
               Visits Done Today
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
               <MapPin className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
+          <div className="mt-2 sm:mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-slate-900">{todayTotals.visitsCompleted}</span>
             <span className="text-xs text-slate-500">site inspections</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
               Follow-ups Completed
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
               <CalendarCheck className="h-4.5 w-4.5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
+          <div className="mt-2 sm:mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-slate-900">{todayTotals.followupsCompleted}</span>
             <span className="text-xs text-slate-500">scheduled tasks</span>
           </div>
@@ -351,10 +351,10 @@ export function EmployeeManagement() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center border-b border-slate-200 gap-6">
+      <div className="flex items-center border-b border-slate-200 gap-4 sm:gap-6 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('roster')}
-          className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
+          className={`shrink-0 whitespace-nowrap pb-3 text-xs sm:text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
             activeTab === 'roster'
               ? 'border-amber-500 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -364,7 +364,7 @@ export function EmployeeManagement() {
         </button>
         <button
           onClick={() => setActiveTab('performance')}
-          className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
+          className={`shrink-0 whitespace-nowrap pb-3 text-xs sm:text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
             activeTab === 'performance'
               ? 'border-amber-500 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -374,7 +374,7 @@ export function EmployeeManagement() {
         </button>
         <button
           onClick={() => setActiveTab('leaderboard')}
-          className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
+          className={`shrink-0 whitespace-nowrap pb-3 text-xs sm:text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
             activeTab === 'leaderboard'
               ? 'border-amber-500 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -409,8 +409,82 @@ export function EmployeeManagement() {
               />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <>
+              {/* Mobile Employee Directory Cards (< md) */}
+              <div className="divide-y divide-slate-200 md:hidden">
+                {employees.map(emp => {
+                  const profile = emp.profile;
+                  const isActive = emp.is_active;
+
+                  return (
+                    <div key={emp.id} className="p-4 space-y-3 bg-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-slate-900 truncate">
+                            {profile?.full_name || 'Agent'}
+                          </div>
+                          <div className="text-xs text-slate-600 font-medium">
+                            {emp.designation} • <span className="capitalize">{profile?.role || 'employee'}</span>
+                          </div>
+                        </div>
+                        {isActive ? (
+                          <Badge variant="success" className="gap-1 shrink-0">
+                            <CheckCircle className="h-3 w-3" /> Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="danger" className="gap-1 shrink-0">
+                            <XCircle className="h-3 w-3" /> Inactive
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 text-xs text-slate-500">
+                        {profile?.email && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{profile.email}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap items-center gap-3">
+                          {profile?.phone && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="h-3.5 w-3.5 text-slate-400" />
+                              {profile.phone}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            Joined {emp.joining_date || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openPermissionsModal(emp)}
+                          className="flex-1 text-amber-800 border-amber-200 bg-amber-50/50 hover:bg-amber-50"
+                        >
+                          <Settings2 className="h-3.5 w-3.5" />
+                          Permissions
+                        </Button>
+                        <Button
+                          variant={isActive ? 'outline' : 'secondary'}
+                          size="sm"
+                          onClick={() => handleToggleStatus(emp)}
+                          className="flex-1"
+                        >
+                          {isActive ? 'Deactivate' : 'Activate'}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-6 py-3">Employee</th>
@@ -492,6 +566,7 @@ export function EmployeeManagement() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
       )}
@@ -499,7 +574,7 @@ export function EmployeeManagement() {
       {/* TAB 2: Daily & Monthly Reports */}
       {activeTab === 'performance' && (
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-slate-200 px-6 py-4 bg-slate-50/50">
+          <div className="border-b border-slate-200 px-4 sm:px-6 py-4 bg-slate-50/50">
             <h3 className="text-sm font-semibold text-slate-900">
               Real-Time Daily & Monthly Activity Reports
             </h3>
@@ -517,8 +592,48 @@ export function EmployeeManagement() {
               />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <>
+              {/* Mobile Performance Cards (< md) */}
+              <div className="divide-y divide-slate-200 md:hidden">
+                {perfData.performance.map((p) => (
+                  <div key={p.id} className="p-4 space-y-2.5 bg-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-sm text-slate-900">{p.name}</div>
+                        <div className="text-xs text-slate-500">{p.designation}</div>
+                      </div>
+                      <span className="font-bold text-xs text-emerald-700">
+                        ₹{p.thisMonth.brokerageEarned.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1 rounded-lg bg-slate-50 border border-slate-200 p-2 text-center text-[11px]">
+                      <div>
+                        <span className="text-[9px] text-slate-400 block">Leads</span>
+                        <strong className="text-slate-900">{p.today.leadsAssigned}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-slate-400 block">Calls</span>
+                        <strong className="text-emerald-600">{p.today.callsLogged}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-slate-400 block">Visits</span>
+                        <strong className="text-purple-600">{p.today.visitsDone}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-slate-400 block">F/Ups</span>
+                        <strong className="text-amber-600">{p.today.followupsCompleted}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-slate-400 block">Deals</span>
+                        <strong className="text-slate-900">{p.thisMonth.dealsClosed}</strong>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-6 py-3">Employee</th>
@@ -560,6 +675,7 @@ export function EmployeeManagement() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
       )}
@@ -567,7 +683,7 @@ export function EmployeeManagement() {
       {/* TAB 3: Agent Leaderboard */}
       {activeTab === 'leaderboard' && (
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-slate-200 px-6 py-4 bg-slate-50/50 flex items-center justify-between">
+          <div className="border-b border-slate-200 px-4 sm:px-6 py-4 bg-slate-50/50 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <Award className="h-4.5 w-4.5 text-amber-500" />
@@ -588,8 +704,32 @@ export function EmployeeManagement() {
               />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <>
+              {/* Mobile Leaderboard Cards (< md) */}
+              <div className="divide-y divide-slate-200 md:hidden">
+                {perfData.leaderboard.map((agent) => (
+                  <div key={agent.employee_id} className="p-4 flex items-center justify-between gap-3 bg-white">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 font-bold text-xs border border-amber-300">
+                        #{agent.rank}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm text-slate-900 truncate">{agent.name}</div>
+                        <div className="text-xs text-slate-500 truncate">{agent.designation}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          {agent.active_leads} leads • {agent.deals_closed} deals
+                        </div>
+                      </div>
+                    </div>
+                    <span className="font-bold text-sm text-emerald-700 shrink-0">
+                      ₹{agent.brokerage_earned.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-6 py-3">Rank</th>
@@ -639,6 +779,7 @@ export function EmployeeManagement() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
       )}
@@ -789,7 +930,43 @@ export function EmployeeManagement() {
         maxWidth="lg"
       >
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          {/* Mobile Permission Cards (< md) */}
+          <div className="space-y-2.5 md:hidden">
+            {MODULES.map(mod => {
+              const currentMod = editingPermissions[mod.id] || {
+                view: false,
+                create: false,
+                edit: false,
+                delete: false,
+              };
+
+              return (
+                <div key={mod.id} className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 space-y-2">
+                  <div className="font-semibold text-xs text-slate-900">{mod.label}</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(['view', 'create', 'edit', 'delete'] as const).map(action => (
+                      <label
+                        key={action}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white py-2 text-[11px] font-medium capitalize text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!currentMod[action]}
+                          onChange={e =>
+                            handlePermissionChange(mod.id, action, e.target.checked)
+                          }
+                          className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        {action}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-500 font-semibold uppercase">
                 <tr>

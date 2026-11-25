@@ -400,8 +400,158 @@ export function RentalsManagement() {
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <>
+            {/* Mobile Tenancy Cards (< md) */}
+            <div className="divide-y divide-slate-200 md:hidden">
+              {rentals.map((rental) => {
+                const expiry = getExpiryInfo(rental.agreement_end_date);
+                const currentMonthPayment = rental.payments?.find(
+                  (p) => p.month_year === currentMonth
+                );
+                const isCurrentPaid = currentMonthPayment?.status === 'paid';
+                const isExpanded = expandedRentalId === rental.id;
+
+                return (
+                  <div key={rental.id} className="p-4 space-y-3 bg-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-bold text-slate-500">
+                          #RNT-{rental.rental_number}
+                        </span>
+                        <h4 className="text-sm font-bold text-slate-900 truncate">
+                          {rental.property?.title || 'Property'}
+                        </h4>
+                        <p className="text-xs text-slate-500 truncate">
+                          {rental.property?.location || rental.property?.address || 'Lucknow'}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          rental.status === 'active'
+                            ? 'success'
+                            : rental.status === 'notice_period'
+                            ? 'warning'
+                            : 'default'
+                        }
+                        className="capitalize text-[10px] shrink-0"
+                      >
+                        {rental.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-2.5 text-xs">
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 font-semibold block">Tenant</span>
+                        <span className="font-semibold text-slate-900 block truncate">{rental.tenant_name}</span>
+                        <a href={`tel:${rental.tenant_phone}`} className="text-[11px] text-amber-700 font-mono">
+                          {rental.tenant_phone}
+                        </a>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 font-semibold block">Monthly Rent</span>
+                        <span className="font-bold text-slate-900 block">
+                          ₹{rental.monthly_rent.toLocaleString('en-IN')}/mo
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          Dep: ₹{rental.deposit_amount.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div>
+                        <div className="text-[11px] text-slate-500">
+                          {rental.agreement_start_date} → {rental.agreement_end_date}
+                        </div>
+                        {expiry.isExpired ? (
+                          <span className="text-[11px] font-bold text-rose-700">
+                            Expired ({Math.abs(expiry.days)} days ago)
+                          </span>
+                        ) : expiry.isExpiringSoon ? (
+                          <span className="text-[11px] font-bold text-amber-700">
+                            Expires in {expiry.days} days
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {isCurrentPaid ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                          <Check className="h-3.5 w-3.5" /> {currentMonth} Paid
+                        </span>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleQuickMarkPaid(rental)}
+                          className="text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                        >
+                          Mark {currentMonth} Paid
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2.5">
+                      <Button variant="outline" size="sm" onClick={() => openPaymentModal(rental)} className="flex-1">
+                        <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openRenewalModal(rental)} className="flex-1">
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Renew
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedRentalId(isExpanded ? null : rental.id)}
+                      >
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <span className="text-xs ml-1">History</span>
+                      </Button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold uppercase text-slate-600">
+                            Payment History
+                          </span>
+                          <Button variant="outline" size="sm" onClick={() => openPaymentModal(rental)}>
+                            + Record
+                          </Button>
+                        </div>
+                        {!rental.payments || rental.payments.length === 0 ? (
+                          <p className="text-xs text-slate-400 text-center py-2">No payment records yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {rental.payments.map((p) => (
+                              <div key={p.id} className="rounded border border-slate-200 bg-white p-2 text-xs flex items-center justify-between">
+                                <div>
+                                  <span className="font-bold text-slate-900">{p.month_year}</span>
+                                  <span className="text-slate-500 ml-2">₹{p.amount.toLocaleString('en-IN')}</span>
+                                  <p className="text-[10px] text-slate-400">{p.paid_date || `Due ${p.due_date}`}</p>
+                                </div>
+                                <span
+                                  className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                    p.status === 'paid'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : p.status === 'overdue'
+                                      ? 'bg-rose-100 text-rose-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                  }`}
+                                >
+                                  {p.status}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-6 py-3">Agreement & Property</th>
@@ -665,6 +815,7 @@ export function RentalsManagement() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
 

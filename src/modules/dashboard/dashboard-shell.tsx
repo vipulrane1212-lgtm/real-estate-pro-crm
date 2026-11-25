@@ -22,12 +22,14 @@ import { Expenses30DayChart, DailySpendPoint } from '@/components/charts/expense
 import { ExpiringAgreementsWidget } from '@/components/widgets/expiring-agreements-widget';
 import { LeadsBySourceWidget } from '@/components/widgets/leads-by-source-widget';
 import { useDemoData } from '@/modules/demo/demo-data-context';
+import { useAuth } from '@/modules/auth/auth-context';
 
 interface DashboardShellProps {
   userName: string;
 }
 
 export function DashboardShell({ userName }: DashboardShellProps) {
+  const { isAdmin } = useAuth();
   const { showDemoData, setShowDemoData } = useDemoData();
   const [leadsBySource, setLeadsBySource] = useState<Array<{ source: string; count: number }>>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -152,23 +154,23 @@ export function DashboardShell({ userName }: DashboardShellProps) {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-2xs sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-2xs sm:flex-row sm:items-center">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
               Welcome back, {userName || 'Agent'}
             </h1>
-            <Badge variant="gold" className="text-[10px]">
+            <Badge variant="gold" className="text-[10px] whitespace-nowrap shrink-0">
               Phase 7 Active
             </Badge>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500">
             Diksha Real Estate Operations Dashboard & Pipeline Control
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs font-medium text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <label className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-xs font-medium text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors">
             <input
               type="checkbox"
               checked={showDemoData}
@@ -181,7 +183,7 @@ export function DashboardShell({ userName }: DashboardShellProps) {
           <button
             onClick={fetchStats}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 text-slate-500 ${
@@ -223,13 +225,13 @@ export function DashboardShell({ userName }: DashboardShellProps) {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                <span className="text-xs text-slate-500">{card.description}</span>
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+                <span className="text-xs text-slate-500 truncate">{card.description}</span>
                 <Link
                   href={card.href}
-                  className="inline-flex items-center text-xs font-medium text-amber-700 group-hover:text-amber-800 group-hover:underline"
+                  className="inline-flex min-h-[32px] shrink-0 items-center rounded-md px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50 group-hover:text-amber-800 group-hover:underline"
                 >
-                  View <ArrowUpRight className="ml-0.5 h-3 w-3" />
+                  View <ArrowUpRight className="ml-0.5 h-3.5 w-3.5" />
                 </Link>
               </div>
             </Card>
@@ -297,28 +299,51 @@ export function DashboardShell({ userName }: DashboardShellProps) {
               Row Level Security is active on every database table. Employees view only assigned or direct team records, while Administrators maintain organization-wide governance.
             </p>
             <div className="mt-4 border-t border-amber-200/60 pt-3">
-              <Link
-                href="/employees"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-800"
-              >
-                Manage Employees & Permissions &rarr;
-              </Link>
+              {isAdmin ? (
+                <Link
+                  href="/employees"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-800"
+                >
+                  Manage Employees & Permissions &rarr;
+                </Link>
+              ) : (
+                <Link
+                  href="/attendance"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-800"
+                >
+                  Daily Attendance & Check-In &rarr;
+                </Link>
+              )}
             </div>
           </Card>
 
           <Card>
-            <CardTitle className="text-sm">Company Settings</CardTitle>
+            <CardTitle className="text-sm">
+              {isAdmin ? 'Company Settings' : 'Quick Field Actions'}
+            </CardTitle>
             <p className="mt-1 text-xs text-slate-500">
-              Configure agency profile, phone lines, and corporate details.
+              {isAdmin
+                ? 'Configure agency profile, phone lines, and corporate details.'
+                : 'Access today’s scheduled callbacks and property inventory.'}
             </p>
             <div className="mt-4">
-              <Link
-                href="/settings"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
-              >
-                <Building className="h-3.5 w-3.5 text-slate-500" />
-                Edit Company Profile
-              </Link>
+              {isAdmin ? (
+                <Link
+                  href="/settings"
+                  className="inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+                >
+                  <Building className="h-3.5 w-3.5 text-slate-500" />
+                  Edit Company Profile
+                </Link>
+              ) : (
+                <Link
+                  href="/follow-ups"
+                  className="inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+                >
+                  <CalendarClock className="h-3.5 w-3.5 text-amber-600" />
+                  Open Today&apos;s Follow-ups
+                </Link>
+              )}
             </div>
           </Card>
         </div>

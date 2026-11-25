@@ -63,9 +63,9 @@ export function LeadsBySourceWidget({ sources = [], includeDemo = false }: Leads
 
         <Link
           href="/leads"
-          className="text-xs font-medium text-amber-700 hover:text-amber-800 inline-flex items-center gap-1"
+          className="text-xs font-semibold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1 whitespace-nowrap shrink-0 py-1 px-1.5 rounded hover:bg-amber-50"
         >
-          View Inbox <ArrowRight className="h-3 w-3" />
+          View Inbox <ArrowRight className="h-3 w-3 shrink-0" />
         </Link>
       </div>
 

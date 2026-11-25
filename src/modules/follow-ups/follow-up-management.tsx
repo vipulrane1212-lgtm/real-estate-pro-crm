@@ -183,9 +183,9 @@ export function FollowUpManagement() {
 
       {/* Missed / Overdue Alerts Banner */}
       {overdueCount > 0 && activeTab !== 'completed' && (
-        <div className="flex items-center justify-between rounded-xl border border-red-300 bg-red-50 p-4 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-white shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-red-300 bg-red-50 p-4 shadow-2xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white shadow-xs">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
@@ -201,6 +201,7 @@ export function FollowUpManagement() {
             variant="danger"
             size="sm"
             onClick={() => setActiveTab('overdue')}
+            className="w-full sm:w-auto shrink-0"
           >
             View Overdue Tasks
           </Button>
@@ -208,10 +209,10 @@ export function FollowUpManagement() {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex items-center border-b border-slate-200 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('today')}
-          className={`border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+          className={`shrink-0 whitespace-nowrap border-b-2 px-3.5 sm:px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'today'
               ? 'border-[#0f172a] text-[#0f172a]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -221,7 +222,7 @@ export function FollowUpManagement() {
         </button>
         <button
           onClick={() => setActiveTab('overdue')}
-          className={`border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+          className={`shrink-0 whitespace-nowrap border-b-2 px-3.5 sm:px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'overdue'
               ? 'border-red-600 text-red-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -231,7 +232,7 @@ export function FollowUpManagement() {
         </button>
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+          className={`shrink-0 whitespace-nowrap border-b-2 px-3.5 sm:px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'upcoming'
               ? 'border-[#0f172a] text-[#0f172a]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -241,7 +242,7 @@ export function FollowUpManagement() {
         </button>
         <button
           onClick={() => setActiveTab('all')}
-          className={`border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+          className={`shrink-0 whitespace-nowrap border-b-2 px-3.5 sm:px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'all'
               ? 'border-[#0f172a] text-[#0f172a]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -251,7 +252,7 @@ export function FollowUpManagement() {
         </button>
         <button
           onClick={() => setActiveTab('completed')}
-          className={`border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+          className={`shrink-0 whitespace-nowrap border-b-2 px-3.5 sm:px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'completed'
               ? 'border-[#0f172a] text-[#0f172a]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -360,12 +361,12 @@ export function FollowUpManagement() {
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
                     {f.lead?.phone && (
-                      <>
+                      <div className="flex items-center gap-2">
                         <a
                           href={`tel:${f.lead.phone}`}
-                          className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                           title="Call Client"
                         >
                           <Phone className="h-4 w-4" />
@@ -374,12 +375,12 @@ export function FollowUpManagement() {
                           href={`https://wa.me/${f.lead.phone.replace(/[^0-9]/g, '')}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
                           title="Chat on WhatsApp"
                         >
                           <MessageSquare className="h-4 w-4" />
                         </a>
-                      </>
+                      </div>
                     )}
 
                     {!isCompleted && (
@@ -390,6 +391,7 @@ export function FollowUpManagement() {
                           setCompletingFollowUp(f);
                           setOutcomeNote('');
                         }}
+                        className="flex-1 sm:flex-none"
                       >
                         <Check className="h-3.5 w-3.5 mr-1" />
                         Mark Complete

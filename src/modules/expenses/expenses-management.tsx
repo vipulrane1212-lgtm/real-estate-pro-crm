@@ -243,11 +243,13 @@ export function ExpensesManagement() {
         </form>
 
         {/* Date Filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
           {/* Month selector */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg">
-            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-            <span className="font-medium">Month:</span>
+          <div className="flex items-center justify-between sm:justify-start gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-2 sm:py-1.5 rounded-lg">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <span className="font-medium">Month:</span>
+            </div>
             <input
               type="month"
               value={selectedMonth}
@@ -262,7 +264,7 @@ export function ExpensesManagement() {
           </div>
 
           {/* Date range picker */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-2 sm:py-1.5 rounded-lg">
             <span className="font-medium">From:</span>
             <input
               type="date"
@@ -332,8 +334,71 @@ export function ExpensesManagement() {
             onAction={openCreateModal}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
+          <>
+            {/* Mobile Expense Cards (< md) */}
+            <div className="divide-y divide-slate-100 md:hidden">
+              {displayedExpenses.map((exp) => {
+                const displayHeadline = exp.headline || exp.title || 'Expense';
+                return (
+                  <div key={exp.id} className="p-3.5 space-y-2 bg-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-slate-900 truncate">{displayHeadline}</h4>
+                        <p className="text-[11px] text-slate-500">
+                          {exp.expense_date} • {exp.paid_to || 'General'} • {exp.employee?.profile?.full_name || 'Admin'}
+                        </p>
+                      </div>
+                      <span className="font-extrabold text-sm text-slate-900 shrink-0">
+                        ₹{Number(exp.amount).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    {exp.notes && (
+                      <p className="text-xs text-slate-600 bg-slate-50 rounded px-2.5 py-1.5 border border-slate-100">
+                        {exp.notes}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <div>
+                        {exp.receipt_url ? (
+                          <a
+                            href={exp.receipt_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-amber-700 font-semibold underline py-1"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" /> View Receipt
+                          </a>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">No receipt</span>
+                        )}
+                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1.5">
+                          <Button variant="outline" size="sm" onClick={() => openEditModal(exp)} aria-label="Edit expense">
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={deletingId === exp.id}
+                            onClick={() => handleDelete(exp.id, displayHeadline)}
+                            className="text-red-600 hover:bg-red-50"
+                            aria-label="Delete expense"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Date</th>
@@ -416,6 +481,7 @@ export function ExpensesManagement() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

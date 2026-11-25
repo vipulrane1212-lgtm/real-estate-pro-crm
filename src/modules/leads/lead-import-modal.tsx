@@ -319,7 +319,7 @@ export function LeadImportModal({ isOpen, onClose, onSuccess }: LeadImportModalP
                   </div>
                 </div>
 
-                <div className="max-h-60 overflow-y-auto rounded-lg border border-slate-200">
+                <div className="max-h-60 overflow-x-auto overflow-y-auto rounded-lg border border-slate-200">
                   <table className="w-full text-left text-xs">
                     <thead className="sticky top-0 bg-slate-100 text-slate-600">
                       <tr>
