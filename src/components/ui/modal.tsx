@@ -20,19 +20,21 @@ export function Modal({
   children,
   maxWidth = 'md',
 }: ModalProps) {
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleEscape);
-    }
+    window.addEventListener('keydown', handleEscape);
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -45,16 +47,17 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-y-auto overscroll-contain">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 sm:backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog: bottom sheet feel on mobile, centered card on sm+ */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} rounded-t-2xl sm:rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl transition-all sm:my-8 max-h-[92dvh] overflow-y-auto pb-safe`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} rounded-t-2xl sm:rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xl transition-all sm:my-8 max-h-[92dvh] overflow-y-auto overscroll-contain pb-safe`}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 sm:pb-4">
           <div className="min-w-0">

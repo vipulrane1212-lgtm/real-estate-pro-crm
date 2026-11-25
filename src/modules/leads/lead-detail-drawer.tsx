@@ -112,6 +112,11 @@ export function LeadDetailDrawer({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
 
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const isDrawerActive = Boolean(isOpen && lead);
+
   useEffect(() => {
     if (isOpen && lead) {
       loadHistory(lead.id);
@@ -119,6 +124,20 @@ export function LeadDetailDrawer({
       loadDocuments(lead.id);
     }
   }, [isOpen, lead?.id]);
+
+  // Clean body scroll lock while drawer is open; always restore on close/unmount
+  useEffect(() => {
+    if (!isDrawerActive) return;
+    document.body.style.overflow = 'hidden';
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [isDrawerActive]);
 
   const loadDocuments = async (leadId: string) => {
     setIsLoadingDocuments(true);
@@ -252,16 +271,19 @@ export function LeadDetailDrawer({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (avoid heavy GPU blur on mobile for lag-free scroll) */}
       <div
-        className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 z-40 bg-slate-900/50 sm:backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
-      {/* Slide-over Drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 flex w-full sm:max-w-2xl flex-col bg-white shadow-2xl transition-transform">
+      {/* Slide-over Drawer: single smooth scroll container on mobile, pinned header + inner scroll on sm+ */}
+      <div
+        className="fixed inset-0 sm:inset-y-0 sm:left-auto sm:right-0 z-50 w-full sm:max-w-2xl bg-white shadow-2xl overflow-y-auto overscroll-contain sm:overflow-hidden sm:flex sm:flex-col pb-safe"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-900 px-4 py-3 sm:px-6 sm:py-4 text-white">
+        <div className="sticky top-0 z-20 sm:static shrink-0 flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-900 px-4 py-3 sm:px-6 sm:py-4 text-white">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 font-bold text-sm sm:text-base border border-amber-500/30">
               {lead.full_name.slice(0, 2).toUpperCase()}
@@ -538,7 +560,7 @@ export function LeadDetailDrawer({
         </div>
 
         {/* Tab Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-safe">
+        <div className="sm:flex-1 sm:overflow-y-auto p-4 sm:p-6 pb-8 sm:pb-6">
           {/* TAB 1: AUTO MATCHED PROPERTIES */}
           {activeTab === 'matches' && (
             <div className="space-y-4">
@@ -867,84 +889,91 @@ export function LeadDetailDrawer({
         </div>
       </div>
 
-      {/* Follow-up modal mounted */}
-      <CreateFollowUpModal
-        isOpen={isFollowUpModalOpen}
-        onClose={() => setIsFollowUpModalOpen(false)}
-        onSuccess={() => {
-          setIsFollowUpModalOpen(false);
-          loadHistory(lead.id);
-        }}
-        initialLeadId={lead.id}
-        initialLeadName={lead.full_name}
-        leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
-        employees={employees}
-      />
+      {/* Action sub-modals mounted lazily only when opened to eliminate mobile tap lag */}
+      {isFollowUpModalOpen && (
+        <CreateFollowUpModal
+          isOpen={isFollowUpModalOpen}
+          onClose={() => setIsFollowUpModalOpen(false)}
+          onSuccess={() => {
+            setIsFollowUpModalOpen(false);
+            loadHistory(lead.id);
+          }}
+          initialLeadId={lead.id}
+          initialLeadName={lead.full_name}
+          leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
+          employees={employees}
+        />
+      )}
 
-      {/* Call modal mounted */}
-      <LogCallModal
-        isOpen={isCallModalOpen}
-        onClose={() => setIsCallModalOpen(false)}
-        onSuccess={() => {
-          setIsCallModalOpen(false);
-          loadHistory(lead.id);
-        }}
-        leadId={lead.id}
-        clientName={lead.full_name}
-        clientPhone={lead.phone}
-      />
+      {isCallModalOpen && (
+        <LogCallModal
+          isOpen={isCallModalOpen}
+          onClose={() => setIsCallModalOpen(false)}
+          onSuccess={() => {
+            setIsCallModalOpen(false);
+            loadHistory(lead.id);
+          }}
+          leadId={lead.id}
+          clientName={lead.full_name}
+          clientPhone={lead.phone}
+        />
+      )}
 
-      {/* WhatsApp modal mounted */}
-      <WhatsAppModal
-        isOpen={isWhatsAppModalOpen}
-        onClose={() => setIsWhatsAppModalOpen(false)}
-        onSuccess={() => {
-          setIsWhatsAppModalOpen(false);
-          loadHistory(lead.id);
-        }}
-        leadId={lead.id}
-        clientName={lead.full_name}
-        clientPhone={lead.phone}
-        clientLocation={lead.location || lead.preferred_location || undefined}
-        clientRequirement={lead.requirement || undefined}
-      />
+      {isWhatsAppModalOpen && (
+        <WhatsAppModal
+          isOpen={isWhatsAppModalOpen}
+          onClose={() => setIsWhatsAppModalOpen(false)}
+          onSuccess={() => {
+            setIsWhatsAppModalOpen(false);
+            loadHistory(lead.id);
+          }}
+          leadId={lead.id}
+          clientName={lead.full_name}
+          clientPhone={lead.phone}
+          clientLocation={lead.location || lead.preferred_location || undefined}
+          clientRequirement={lead.requirement || undefined}
+        />
+      )}
 
-      {/* Site visit modal mounted */}
-      <SiteVisitModal
-        isOpen={isSiteVisitModalOpen}
-        onClose={() => setIsSiteVisitModalOpen(false)}
-        onSuccess={() => {
-          setIsSiteVisitModalOpen(false);
-          loadHistory(lead.id);
-        }}
-        initialLeadId={lead.id}
-        leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
-      />
+      {isSiteVisitModalOpen && (
+        <SiteVisitModal
+          isOpen={isSiteVisitModalOpen}
+          onClose={() => setIsSiteVisitModalOpen(false)}
+          onSuccess={() => {
+            setIsSiteVisitModalOpen(false);
+            loadHistory(lead.id);
+          }}
+          initialLeadId={lead.id}
+          leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
+        />
+      )}
 
-      {/* Deal modal mounted */}
-      <DealModal
-        isOpen={isDealModalOpen}
-        onClose={() => setIsDealModalOpen(false)}
-        onSuccess={() => {
-          setIsDealModalOpen(false);
-          loadHistory(lead.id);
-          onLeadUpdated({ ...lead, status: 'closed_won' });
-        }}
-        initialLeadId={lead.id}
-        leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
-      />
+      {isDealModalOpen && (
+        <DealModal
+          isOpen={isDealModalOpen}
+          onClose={() => setIsDealModalOpen(false)}
+          onSuccess={() => {
+            setIsDealModalOpen(false);
+            loadHistory(lead.id);
+            onLeadUpdated({ ...lead, status: 'closed_won' });
+          }}
+          initialLeadId={lead.id}
+          leads={[{ id: lead.id, full_name: lead.full_name, phone: lead.phone }]}
+        />
+      )}
 
-      {/* Document upload modal mounted */}
-      <DocumentUploadModal
-        isOpen={isDocModalOpen}
-        onClose={() => setIsDocModalOpen(false)}
-        onSuccess={() => {
-          setIsDocModalOpen(false);
-          loadDocuments(lead.id);
-          loadHistory(lead.id);
-        }}
-        initialLeadId={lead.id}
-      />
+      {isDocModalOpen && (
+        <DocumentUploadModal
+          isOpen={isDocModalOpen}
+          onClose={() => setIsDocModalOpen(false)}
+          onSuccess={() => {
+            setIsDocModalOpen(false);
+            loadDocuments(lead.id);
+            loadHistory(lead.id);
+          }}
+          initialLeadId={lead.id}
+        />
+      )}
     </>
   );
 }

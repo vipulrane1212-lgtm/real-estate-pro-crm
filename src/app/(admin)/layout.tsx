@@ -14,7 +14,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] overflow-x-hidden">
+    <div className="flex min-h-screen bg-[#f8fafc] overflow-x-clip">
       {/* Follow-up Loud Alarm Overlay (Unmissable full-screen reminder) */}
       <FollowUpAlarmOverlay />
 
@@ -27,7 +27,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       />
 
       {/* Main App Container */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <div className="flex flex-1 flex-col min-w-0">
         {/* Agreement / Renewal Voice Alert & Banner */}
         <VoiceAlertAnnouncer />
 
@@ -38,7 +38,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           onMenuToggle={() => setSidebarOpen(prev => !prev)}
         />
 
-        <main className="flex-1 overflow-y-auto px-3 py-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 min-w-0">
+        <main className="flex-1 px-3 py-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 min-w-0">
           <div className="w-full min-w-0">{children}</div>
         </main>
       </div>
