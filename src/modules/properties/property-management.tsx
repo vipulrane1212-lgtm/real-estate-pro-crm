@@ -39,6 +39,7 @@ import { PropertyModal } from './property-modal';
 import { Property360Viewer } from './property-360-viewer';
 import { DocumentUploadModal } from '@/modules/documents/document-upload-modal';
 import { Modal } from '@/components/ui/modal';
+import { useAuth } from '@/modules/auth/auth-context';
 
 function formatPriceINR(amount: number): string {
   if (amount >= 10000000) {
@@ -140,6 +141,10 @@ function getPropertyMedia(property: Property | null): NormalizedMedia[] {
 }
 
 export function PropertyManagement() {
+  const { role } = useAuth();
+  const isOwner = role === 'super_admin' || role === 'admin';
+  const isEmployee = role === 'employee';
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [employees, setEmployees] = useState<Array<{ id: string; profile?: { full_name: string } }>>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -204,6 +209,9 @@ export function PropertyManagement() {
   useEffect(() => {
     fetchProperties();
     fetchEmployees();
+    const handleToggle = () => fetchProperties();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -283,7 +291,9 @@ export function PropertyManagement() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            Residential & commercial properties, multi-room photo galleries, videos, and 360° virtual tours
+            {isEmployee
+              ? 'Browse property inventory, explore multi-room photo galleries, and share brochures with clients (Adding listings is restricted to the business owner)'
+              : 'Residential & commercial properties, multi-room photo galleries, videos, and 360° virtual tours'}
           </p>
         </div>
 
@@ -315,17 +325,19 @@ export function PropertyManagement() {
             Refresh
           </Button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => {
-              setEditingProperty(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Add Property
-          </Button>
+          {isOwner && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setEditingProperty(null);
+                setIsModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Add Property
+            </Button>
+          )}
         </div>
       </div>
 
@@ -402,13 +414,21 @@ export function PropertyManagement() {
       ) : properties.length === 0 ? (
         <EmptyState
           title="No properties found"
-          description="No property listings match your current search. Click 'Add Property' to list a new flat, villa, or commercial unit."
+          description={
+            isOwner
+              ? "No property listings match your current search. Click 'Add Property' to list a new flat, villa, or commercial unit."
+              : "No property listings match your current search. New property listings can only be added by the business owner."
+          }
           icon={Building2}
-          actionText="Add Property Listing"
-          onAction={() => {
-            setEditingProperty(null);
-            setIsModalOpen(true);
-          }}
+          actionText={isOwner ? "Add Property Listing" : undefined}
+          onAction={
+            isOwner
+              ? () => {
+                  setEditingProperty(null);
+                  setIsModalOpen(true);
+                }
+              : undefined
+          }
         />
       ) : viewMode === 'grid' ? (
         /* Grid Cards View */
@@ -582,23 +602,27 @@ export function PropertyManagement() {
                       >
                         <FileText className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        onClick={() => {
-                          setEditingProperty(property);
-                          setIsModalOpen(true);
-                        }}
-                        className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                        title="Edit Property"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(property.id, property.title)}
-                        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors"
-                        title="Delete Property"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      {isOwner && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingProperty(property);
+                              setIsModalOpen(true);
+                            }}
+                            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                            title="Edit Property"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(property.id, property.title)}
+                            className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors"
+                            title="Delete Property"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -744,23 +768,27 @@ export function PropertyManagement() {
                           >
                             <FileText className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => {
-                              setEditingProperty(p);
-                              setIsModalOpen(true);
-                            }}
-                            className="p-1 text-slate-600 hover:bg-slate-100 rounded"
-                            title="Edit"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id, p.title)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {isOwner && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setEditingProperty(p);
+                                  setIsModalOpen(true);
+                                }}
+                                className="p-1 text-slate-600 hover:bg-slate-100 rounded"
+                                title="Edit"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(p.id, p.title)}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -987,18 +1015,20 @@ export function PropertyManagement() {
                 Tip: Use <kbd className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 text-[10px]">←</kbd> and <kbd className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 text-[10px]">→</kbd> keyboard arrows to navigate rooms.
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setEditingProperty(galleryProperty);
-                    setIsModalOpen(true);
-                    setGalleryProperty(null);
-                  }}
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                  Edit Media / Add Rooms
-                </Button>
+                {isOwner && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingProperty(galleryProperty);
+                      setIsModalOpen(true);
+                      setGalleryProperty(null);
+                    }}
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                    Edit Media / Add Rooms
+                  </Button>
+                )}
                 <Button variant="secondary" size="sm" onClick={() => setGalleryProperty(null)}>
                   Close
                 </Button>

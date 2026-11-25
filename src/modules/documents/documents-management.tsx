@@ -78,6 +78,9 @@ export function DocumentsManagement() {
 
   useEffect(() => {
     fetchDocuments();
+    const handleToggle = () => fetchDocuments();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [typeFilter, expiringOnly]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

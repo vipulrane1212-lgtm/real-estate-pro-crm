@@ -101,6 +101,9 @@ export function DealsManagement() {
       setIsLoading(false);
     };
     init();
+    const handleToggle = () => fetchData();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, []);
 
   const handleRefresh = async () => {

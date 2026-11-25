@@ -95,6 +95,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Role Enforcement: Employees cannot edit properties. Only owner / admin can edit properties.
+    if (auth.role === 'employee' || (!auth.isAdmin && auth.role !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Forbidden: Employees cannot edit property listings. Only the business owner can edit properties.' },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
 
@@ -194,8 +202,8 @@ export async function DELETE(
 ) {
   try {
     const auth = await getAuthContext();
-    if (!auth || !auth.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden: Admin access required to delete property' }, { status: 403 });
+    if (!auth || auth.role === 'employee' || (!auth.isAdmin && auth.role !== 'super_admin')) {
+      return NextResponse.json({ error: 'Forbidden: Only the business owner can delete properties' }, { status: 403 });
     }
 
     const { id } = await params;

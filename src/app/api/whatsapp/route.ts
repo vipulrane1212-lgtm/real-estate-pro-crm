@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import { WhatsAppMessage } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('w', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     if (!auth.isAdmin) {
       if (!auth.employeeId) {

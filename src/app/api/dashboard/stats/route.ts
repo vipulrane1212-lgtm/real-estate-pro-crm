@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { query } from '@/lib/db';
 import { DashboardStats } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,14 +32,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const includeDemo = searchParams.get('include_demo') === 'true' || searchParams.get('show_demo') === 'true';
+    const includeDemo = shouldIncludeDemo(request);
 
-    // Demo filter for leads and follow-ups
+    // Demo filter for leads, follow-ups, visits, deals, properties
     const leadDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
     const leadWhereDemo = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
     const followUpDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
-    const followUpWhereDemo = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const visitDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
+    const dealDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
+    const propDemoCond = includeDemo ? '' : 'AND (is_demo IS FALSE OR is_demo IS NULL)';
 
     // Query real PostgreSQL counts
     try {
@@ -58,21 +60,21 @@ export async function GET(request: Request) {
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 ${leadDemoCond}`, [employeeId]),
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE assigned_to = $1 AND status = $2 ${leadDemoCond}`, [employeeId, 'new']),
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.follow_ups WHERE assigned_to = $1 AND status = $2 ${followUpDemoCond}`, [employeeId, 'pending']),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE assigned_to = $1 AND DATE(visit_date) = $2', [employeeId, today]),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE employee_id = $1 AND status = $2', [employeeId, 'closed_won']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.site_visits WHERE assigned_to = $1 AND DATE(visit_date) = $2 ${visitDemoCond}`, [employeeId, today]),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.deals WHERE employee_id = $1 AND status = $2 ${dealDemoCond}`, [employeeId, 'closed_won']),
         ]);
       } else {
         [totalLeadsRes, newLeadsRes, pendingFollowUpsRes, siteVisitsTodayRes, closedDealsRes] = await Promise.all([
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads ${leadWhereDemo}`),
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.leads WHERE status = $1 ${leadDemoCond}`, ['new']),
           query<{ count: string }>(`SELECT COUNT(*) as count FROM public.follow_ups WHERE status = $1 ${followUpDemoCond}`, ['pending']),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1', [today]),
-          query<{ count: string }>('SELECT COUNT(*) as count FROM public.deals WHERE status = $1', ['closed_won']),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.site_visits WHERE DATE(visit_date) = $1 ${visitDemoCond}`, [today]),
+          query<{ count: string }>(`SELECT COUNT(*) as count FROM public.deals WHERE status = $1 ${dealDemoCond}`, ['closed_won']),
         ]);
       }
 
       const [availablePropertiesRes, leadsBySourceRows] = await Promise.all([
-        query<{ count: string }>('SELECT COUNT(*) as count FROM public.properties WHERE status = $1', ['available']),
+        query<{ count: string }>(`SELECT COUNT(*) as count FROM public.properties WHERE status = $1 ${propDemoCond}`, ['available']),
         query<{ source: string; count: string }>(
           `SELECT LOWER(source) as source, COUNT(*)::text as count 
            FROM public.leads 

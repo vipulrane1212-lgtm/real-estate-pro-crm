@@ -98,6 +98,12 @@ export function SiteVisitsManagement() {
       setIsLoading(false);
     };
     init();
+    const handleToggle = () => {
+      fetchVisits();
+      fetchPrerequisites();
+    };
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [filterTab]);
 
   const handleRefresh = async () => {

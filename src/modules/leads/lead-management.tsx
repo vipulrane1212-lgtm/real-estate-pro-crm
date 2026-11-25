@@ -28,6 +28,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Lead, LeadStatus, LeadType, LeadSource } from '@/lib/supabase/types';
+import { useDemoData } from '@/modules/demo/demo-data-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -112,6 +113,8 @@ export function LeadManagement() {
   // View switch: kanban vs list
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
 
+  const { showDemoData } = useDemoData();
+
   // Filters & Sorting
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -119,15 +122,11 @@ export function LeadManagement() {
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('');
-  const [demoFilter, setDemoFilter] = useState<'all' | 'real' | 'only'>('all');
   const [sortBy, setSortBy] = useState('newest');
 
   // Modals & Drawers
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-  const [isReseeding, setIsReseeding] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -154,7 +153,7 @@ export function LeadManagement() {
       if (typeFilter !== 'all') params.set('type', typeFilter);
       if (locationFilter) params.set('location', locationFilter);
       if (sortBy) params.set('sort_by', sortBy);
-      if (demoFilter !== 'all') params.set('demo', demoFilter);
+      params.set('include_demo', String(showDemoData));
 
       // Handle source and unassigned chip
       if (sourceFilter === 'unassigned') {
@@ -218,8 +217,13 @@ export function LeadManagement() {
     const timer = setTimeout(() => {
       fetchLeads();
     }, 250);
-    return () => clearTimeout(timer);
-  }, [search, statusFilter, typeFilter, employeeFilter, sourceFilter, locationFilter, demoFilter, sortBy]);
+    const handleToggle = () => fetchLeads();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('diksha_demo_toggle', handleToggle);
+    };
+  }, [search, statusFilter, typeFilter, employeeFilter, sourceFilter, locationFilter, sortBy, showDemoData]);
 
   const handleLeadStatusChange = async (leadId: string, newStatus: LeadStatus) => {
     // Optimistic update
@@ -370,52 +374,6 @@ export function LeadManagement() {
     }
   };
 
-  // Demo Data Controls
-  const handleResetDemoData = async () => {
-    setIsResetting(true);
-    try {
-      const res = await fetch('/api/leads/demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' }),
-      });
-      if (res.ok) {
-        setIsResetConfirmOpen(false);
-        setSelectedLeadIds(new Set());
-        await fetchLeads();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to reset demo data');
-      }
-    } catch (e) {
-      console.error('Reset demo data failed', e);
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const handleReseedDemoData = async () => {
-    setIsReseeding(true);
-    try {
-      const res = await fetch('/api/leads/demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reseed' }),
-      });
-      if (res.ok) {
-        setSelectedLeadIds(new Set());
-        await fetchLeads();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to re-seed demo data');
-      }
-    } catch (e) {
-      console.error('Reseed demo data failed', e);
-    } finally {
-      setIsReseeding(false);
-    }
-  };
-
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedLeadId(id);
@@ -449,36 +407,11 @@ export function LeadManagement() {
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            Source tracking, pipeline Kanban, quick assignment, and demo data control
+            Source tracking, pipeline Kanban, quick assignment, and client conversions
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Admin Demo Controls */}
-          {effectiveIsAdmin && (
-            <>
-              <button
-                onClick={() => setIsResetConfirmOpen(true)}
-                disabled={isResetting || isReseeding}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50/70 px-3 py-1.5 text-xs font-semibold text-red-700 shadow-2xs hover:bg-red-100 transition disabled:opacity-50 cursor-pointer"
-                title="Deletes ONLY demo leads (is_demo = true)"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Reset Demo Data
-              </button>
-
-              <button
-                onClick={handleReseedDemoData}
-                disabled={isResetting || isReseeding}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-2xs hover:bg-amber-100 transition disabled:opacity-50 cursor-pointer"
-                title="Seeds exactly 100 demo leads across all channels"
-              >
-                <RotateCcw className={`h-3.5 w-3.5 ${isReseeding ? 'animate-spin' : ''}`} />
-                Re-seed 100 Demo
-              </button>
-            </>
-          )}
-
           {/* Refresh */}
           <Button
             variant="outline"
@@ -678,19 +611,6 @@ export function LeadManagement() {
           </select>
         </div>
 
-        {/* Demo Filter */}
-        <div className="sm:col-span-2">
-          <select
-            value={demoFilter}
-            onChange={(e) => setDemoFilter(e.target.value as 'all' | 'real' | 'only')}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-amber-500 focus:outline-none"
-          >
-            <option value="all">All Leads (Real + Demo)</option>
-            <option value="real">Real Leads Only</option>
-            <option value="only">Demo Leads Only</option>
-          </select>
-        </div>
-
         {/* Sort By */}
         <div className="sm:col-span-3">
           <select
@@ -750,9 +670,9 @@ export function LeadManagement() {
         <EmptyState
           title="No data yet"
           description={
-            search || statusFilter !== 'all' || typeFilter !== 'all' || sourceFilter !== 'all' || demoFilter !== 'all'
+            search || statusFilter !== 'all' || typeFilter !== 'all' || sourceFilter !== 'all'
               ? 'No leads match the selected filter criteria. Try clearing search filters.'
-              : 'Start building your sales pipeline by recording client enquiries, re-seeding demo data, or importing CSV.'
+              : 'Start building your sales pipeline by recording client enquiries or importing CSV.'
           }
           icon={Users}
           actionText="Add First Lead"
@@ -827,11 +747,6 @@ export function LeadManagement() {
                             </div>
 
                             <div className="flex items-center gap-1">
-                              {lead.is_demo && (
-                                <span className="rounded bg-amber-400/20 border border-amber-300 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide text-amber-900">
-                                  DEMO
-                                </span>
-                              )}
                               <span
                                 className={`rounded border px-1.5 py-0.2 text-[10px] font-semibold ${getSourceBadgeClass(
                                   lead.source
@@ -971,11 +886,6 @@ export function LeadManagement() {
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-slate-900">{lead.full_name}</span>
-                          {lead.is_demo && (
-                            <span className="rounded bg-amber-400/20 border border-amber-300 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide text-amber-900">
-                              DEMO
-                            </span>
-                          )}
                         </div>
                         <span className="font-mono text-[10px] text-slate-400">
                           #{lead.lead_number}
@@ -1148,44 +1058,6 @@ export function LeadManagement() {
           >
             Clear
           </button>
-        </div>
-      )}
-
-      {/* Confirmation Dialog for Reset Demo Data */}
-      {isResetConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-red-600 mb-3">
-              <div className="rounded-full bg-red-100 p-2">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Reset Demo Leads?</h3>
-            </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              This operation will permanently delete <strong>ONLY</strong> leads with <code>is_demo = true</code> and their associated follow-up tasks and history logs.
-            </p>
-            <p className="mt-2 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg p-2.5 border border-emerald-200">
-              ✓ All real customer leads, property records, and staff members are completely safe and will NEVER be touched.
-            </p>
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsResetConfirmOpen(false)}
-                disabled={isResetting}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleResetDemoData}
-                isLoading={isResetting}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Confirm Reset
-              </Button>
-            </div>
-          </div>
         </div>
       )}
 

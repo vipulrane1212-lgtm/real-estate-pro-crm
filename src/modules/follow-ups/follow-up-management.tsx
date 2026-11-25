@@ -99,6 +99,12 @@ export function FollowUpManagement() {
 
   useEffect(() => {
     fetchFollowUps();
+    const handleToggle = () => {
+      fetchFollowUps();
+      fetchLeadsAndEmployees();
+    };
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [activeTab]);
 
   useEffect(() => {

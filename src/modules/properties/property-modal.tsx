@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Property, PropertyType, PropertyStatus, PropertyPhotoItem, PropertyVideoItem } from '@/lib/supabase/types';
+import { useAuth } from '@/modules/auth/auth-context';
 import {
   Upload,
   Plus,
@@ -83,6 +84,8 @@ export function PropertyModal({
   property,
   employees,
 }: PropertyModalProps) {
+  const { role } = useAuth();
+  const isOwner = role === 'super_admin' || role === 'admin';
   const isEditing = !!property;
 
   const [formData, setFormData] = useState({
@@ -413,6 +416,10 @@ export function PropertyModal({
       setIsSubmitting(true);
       setErrorMessage('');
 
+      if (!isOwner) {
+        throw new Error('Forbidden: Employees cannot add or edit property listings. Only the business owner can manage properties.');
+      }
+
       const payload = {
         title: formData.title,
         property_type: formData.propertyType,
@@ -480,6 +487,12 @@ export function PropertyModal({
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-5 max-h-[80vh] overflow-y-auto px-1 pr-2">
+        {!isOwner && (
+          <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200">
+            <strong>Access Restricted:</strong> You are logged in as an employee. Only the business owner has authority to add or edit property listings.
+          </div>
+        )}
+
         {errorMessage && (
           <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
             {errorMessage}
@@ -1017,7 +1030,13 @@ export function PropertyModal({
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" size="sm" isLoading={isSubmitting}>
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            disabled={!isOwner || isSubmitting}
+            isLoading={isSubmitting}
+          >
             {isEditing ? 'Save Changes' : 'Create Listing'}
           </Button>
         </div>

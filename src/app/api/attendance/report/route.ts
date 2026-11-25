@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import * as XLSX from 'xlsx';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('a', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     // Role-based visibility
     if (!auth.isAdmin) {

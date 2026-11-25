@@ -88,6 +88,12 @@ export function CallsManagement() {
       setIsLoading(false);
     };
     init();
+    const handleToggle = () => {
+      fetchCalls();
+      fetchLeads();
+    };
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [outcomeFilter]);
 
   const handleRefresh = async () => {

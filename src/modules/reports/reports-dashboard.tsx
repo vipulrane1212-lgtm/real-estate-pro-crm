@@ -97,6 +97,9 @@ export function ReportsDashboard() {
 
   useEffect(() => {
     fetchAnalytics();
+    const handleToggle = () => fetchAnalytics();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, []);
 
   const handleExport = async (type: 'all' | 'leads' | 'deals' | 'visits' | 'agents') => {

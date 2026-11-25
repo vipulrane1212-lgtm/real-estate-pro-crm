@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import { FollowUp } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('f', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     // Role-based access control: Employee only sees assigned follow-ups
     if (!auth.isAdmin) {

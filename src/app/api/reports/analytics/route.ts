@@ -1,29 +1,40 @@
 import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
+import { shouldIncludeDemo } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const auth = await getAuthContext();
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const includeDemo = shouldIncludeDemo(request);
+    const leadWhere = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const followUpWhere = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const siteVisitWhere = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const dealWhere = includeDemo ? '' : 'WHERE (is_demo IS FALSE OR is_demo IS NULL)';
+    const leadJoinCond = includeDemo ? '' : 'AND (l.is_demo IS FALSE OR l.is_demo IS NULL)';
+    const callJoinCond = includeDemo ? '' : 'AND (c.is_demo IS FALSE OR c.is_demo IS NULL)';
+    const visitJoinCond = includeDemo ? '' : 'AND (v.is_demo IS FALSE OR v.is_demo IS NULL)';
+    const dealJoinCond = includeDemo ? '' : 'AND (d.is_demo IS FALSE OR d.is_demo IS NULL)';
+
     // 1. Leads by Status
     const statusRows = await query<{ status: string; count: string }>(
-      'SELECT status, COUNT(*) as count FROM public.leads GROUP BY status'
+      `SELECT status, COUNT(*) as count FROM public.leads ${leadWhere} GROUP BY status`
     );
 
     // 2. Leads by Type
     const typeRows = await query<{ lead_type: string; count: string }>(
-      'SELECT COALESCE(lead_type, \'buy\') as lead_type, COUNT(*) as count FROM public.leads GROUP BY lead_type'
+      `SELECT COALESCE(lead_type, 'buy') as lead_type, COUNT(*) as count FROM public.leads ${leadWhere} GROUP BY lead_type`
     );
 
     // 3. Leads by Source
     const sourceRows = await query<{ source: string; count: string }>(
-      'SELECT source, COUNT(*) as count FROM public.leads GROUP BY source'
+      `SELECT source, COUNT(*) as count FROM public.leads ${leadWhere} GROUP BY source`
     );
 
     // 4. Follow-up Performance
@@ -39,6 +50,7 @@ export async function GET() {
         COUNT(*) FILTER (WHERE status = 'pending') as pending,
         COUNT(*) FILTER (WHERE status = 'pending' AND scheduled_at < now()) as overdue
       FROM public.follow_ups
+      ${followUpWhere}
     `);
 
     // 5. Site Visits Performance
@@ -56,6 +68,7 @@ export async function GET() {
         COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled,
         COUNT(*) FILTER (WHERE status = 'no_show') as no_show
       FROM public.site_visits
+      ${siteVisitWhere}
     `);
 
     // 6. Deals & Brokerage Summary
@@ -71,6 +84,7 @@ export async function GET() {
         COALESCE(SUM(deal_value) FILTER (WHERE status = 'closed_won'), 0) as total_deal_value,
         COALESCE(SUM(commission_amount) FILTER (WHERE status = 'closed_won'), 0) as total_brokerage
       FROM public.deals
+      ${dealWhere}
     `);
 
     // 7. Per-Employee Performance Leaderboard
@@ -95,10 +109,10 @@ export async function GET() {
         COALESCE(SUM(b.total_brokerage), 0) as total_brokerage
       FROM public.employees e
       JOIN public.profiles p ON e.user_id = p.id
-      LEFT JOIN public.leads l ON l.assigned_to = e.id
-      LEFT JOIN public.calls c ON c.employee_id = e.id
-      LEFT JOIN public.site_visits v ON v.assigned_to = e.id
-      LEFT JOIN public.deals d ON d.employee_id = e.id
+      LEFT JOIN public.leads l ON l.assigned_to = e.id ${leadJoinCond}
+      LEFT JOIN public.calls c ON c.employee_id = e.id ${callJoinCond}
+      LEFT JOIN public.site_visits v ON v.assigned_to = e.id ${visitJoinCond}
+      LEFT JOIN public.deals d ON d.employee_id = e.id ${dealJoinCond}
       LEFT JOIN public.brokerage b ON b.deal_id = d.id
       GROUP BY e.id, p.full_name, e.designation
       ORDER BY total_brokerage DESC, deals_count DESC

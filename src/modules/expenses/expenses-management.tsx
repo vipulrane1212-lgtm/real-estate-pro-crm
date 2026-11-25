@@ -89,6 +89,9 @@ export function ExpensesManagement() {
 
   useEffect(() => {
     fetchExpenses();
+    const handleToggle = () => fetchExpenses();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [selectedMonth, fromDate, toDate]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

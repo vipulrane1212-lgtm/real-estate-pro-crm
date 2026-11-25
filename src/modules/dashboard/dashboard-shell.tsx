@@ -21,13 +21,14 @@ import Link from 'next/link';
 import { Expenses30DayChart, DailySpendPoint } from '@/components/charts/expenses-30day-chart';
 import { ExpiringAgreementsWidget } from '@/components/widgets/expiring-agreements-widget';
 import { LeadsBySourceWidget } from '@/components/widgets/leads-by-source-widget';
+import { useDemoData } from '@/modules/demo/demo-data-context';
 
 interface DashboardShellProps {
   userName: string;
 }
 
 export function DashboardShell({ userName }: DashboardShellProps) {
-  const [showDemoData, setShowDemoData] = useState(false);
+  const { showDemoData, setShowDemoData } = useDemoData();
   const [leadsBySource, setLeadsBySource] = useState<Array<{ source: string; count: number }>>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalLeads: 0,
@@ -86,6 +87,9 @@ export function DashboardShell({ userName }: DashboardShellProps) {
 
   useEffect(() => {
     fetchStats();
+    const handleToggle = () => fetchStats();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [showDemoData]);
 
   const metricCards = [

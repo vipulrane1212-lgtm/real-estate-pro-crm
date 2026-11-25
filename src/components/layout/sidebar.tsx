@@ -21,6 +21,7 @@ import {
   Building,
   KeyRound,
   Layers,
+  Network,
 } from 'lucide-react';
 import { UserRole } from '@/lib/supabase/types';
 
@@ -62,6 +63,7 @@ export function Sidebar({
     { name: 'Documents', href: '/documents', icon: FileText },
     { name: 'Office Expenses', href: '/accounts', icon: Receipt },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Neural Monitor', href: '/neural-monitor', icon: Network, adminOnly: true, badge: 'LIVE' },
     { name: 'Employees', href: '/employees', icon: Building, adminOnly: true },
     { name: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
   ];

@@ -1,141 +1,119 @@
-# Diksha Real Estate CRM - Phase 1 Foundation (Local First)
+# Real Estate Pro CRM
 
-Enterprise Real Estate CRM & Operations Management System built specifically for **Diksha Real Estate**.
+> **Enterprise Real Estate CRM, Inventory & Field Operations Platform** built with Next.js 16 (App Router), TypeScript, Tailwind CSS, PostgreSQL 16 / Supabase, and a Capacitor Android Companion App.
 
-- **Project ID**: `012e3965-018a-44e8-9ccf-38c973e5eb89`
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript (Strict Mode)
-- **Styling**: Tailwind CSS (Dark Navy `#0f172a` + Gold `#c59b27` Accent Theme)
-- **Database & Auth & Storage**: PostgreSQL 16 / Supabase (PostgreSQL with RLS, Auth, Storage Buckets)
-- **Hosting Target**: Local (`http://localhost:3000`) for development & testing; cloud deployment to Vercel + Cloud Supabase is paused until local testing is complete.
+![Dashboard Overview](screenshots/01_dashboard.png)
 
 ---
 
-## 1. Local Prerequisites & Setup
+## Overview
+
+**Real Estate Pro CRM** is a full-stack, role-based real estate operations system designed for brokerages, property consultants, and developer sales teams. It unifies lead capture, automated property matching, multi-room inventory with 360° virtual tours, follow-up queues, site visits, call logging, deals & brokerage payouts, rental management, live field-agent fleet tracking, and executive analytics into a single dark-navy & gold workspace.
+
+---
+
+## Key Modules & Capabilities
+
+### 1. Lead Management & Pipeline (`/leads`)
+- **Kanban Board & List View**: Drag-and-drop stage transitions across *New, Contacted, Follow-up, Site Visit, Negotiation, Closed Won, Closed Lost*.
+- **Full CRUD & Bulk Operations**: Create/edit leads with budget range, preferred location, requirement (`1/2/3 BHK`, `Plot`, `Shop`, `Office`), source, and 1-click agent assignment.
+- **Unified Lead Inbox & CSV Import/Export**: Downloadable CSV template, row-level validation, bulk import, and filtered CSV export.
+- **Timeline & Audit History**: Chronological activity log (`lead_history` + `audit_logs`) tracking status changes, notes, calls, follow-ups, and reassignments.
+- **Role-Based Access Control (RLS)**: Admins see all leads; agents see only assigned leads.
+
+![Leads Kanban](screenshots/02_leads_kanban.png)
+
+### 2. Property Inventory & 360° Viewer (`/properties`)
+- **Multi-Category Listings**: Supports *New Project, Resale, Rental, Commercial, Plot/Land* with status tracking (*Available, Hold, Sold, Rented*).
+- **Multi-Room Photo Gallery & Video Uploads**: Room-by-room photo explorer, video links/uploads, document links, and owner contact details.
+- **Interactive 360° Panorama Viewer**: Supports equirectangular 360° image URLs with drag-to-pan and fullscreen controls.
+
+![Property Inventory](screenshots/06_properties.png)
+
+### 3. Auto-Matching & WhatsApp Integration
+- **Weighted Matching Engine (`/api/properties/matched`)**: Automatically matches leads to properties using location, listing type, $\pm 15\%$ budget window, and BHK/requirement alignment with percentage match scores and reasons.
+- **1-Click WhatsApp Share**: Generates pre-filled `wa.me` messages with property details for instant client sharing, plus a dedicated WhatsApp module (`/whatsapp`).
+
+### 4. Follow-ups, Site Visits & Calls (`/follow-ups`, `/site-visits`, `/calls`)
+- **Daily Follow-up Queue**: Today, Overdue (highlighted in red), Upcoming, and Completed tabs with outcome notes and alarm-ready schema fields (`reminder_at`, `snoozed_until`, `acknowledged_at`, `repeat_count`).
+- **Site Visit Scheduling**: Property inspection scheduling with client interest level (*Hot / Warm / Cold*) and feedback.
+- **Call Logging & Telephony Webhooks**: Incoming/outgoing/missed call tracking, duration, recording URLs, and webhook endpoint (`/api/webhooks/telephony`).
+
+### 5. Deals, Brokerage, Rentals & Expenses (`/deals`, `/brokerage`, `/rentals`, `/accounts`, `/documents`)
+- **Deals & Brokerage**: Transaction value tracking, commission calculation, and paid/pending brokerage ledger.
+- **Rentals & Client Projects**: Lease management, tenant tracking, and client project submissions.
+- **Office Expenses & Document Vault**: Categorized expense approvals and centralized property/lead document storage.
+
+### 6. Field Operations, Live Fleet Radar & Neural Monitor (`/employees`, `/attendance`, `/neural-monitor`, `/reports`)
+- **Employee Roster & 8-Module Permission Matrix**: Granular View/Create/Edit/Delete permissions per agent.
+- **Attendance & Live Fleet Radar**: Check-in/out tracking with GPS location logs (`/api/location`).
+- **Neural Monitor & Analytics Reports**: System health, pipeline conversion metrics, and agent performance reports.
+- **Mobile Companion App (`/mobile-app`)**: Capacitor + TypeScript Android companion wrapper for field agents.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 16 (App Router, Turbopack) |
+| **Language** | TypeScript (Strict Mode) |
+| **UI & Styling** | Tailwind CSS 4, Lucide Icons (Navy `#0f172a` + Gold `#c59b27` Theme) |
+| **Database** | PostgreSQL 16 (with Row Level Security, Triggers, and Indexes) |
+| **Auth & Storage** | Local Session Auth + Supabase SSR / Storage Buckets (`property-photos`, `documents`, `call-recordings`, `company-assets`) |
+| **Mobile Wrapper** | Capacitor (Android) in `mobile-app/` |
+
+---
+
+## Local Setup & Quick Start
 
 ### Prerequisites
-1. **Node.js**: v18.18+ or v20+ (tested on Node v24.15.0)
-2. **Local PostgreSQL** or **Docker / Supabase CLI**:
-   - If using **local PostgreSQL**: Ensure PostgreSQL is running on port 5432 with database `diksha_crm`.
-   - If using **Supabase CLI**: Run `npx supabase start` (requires Docker Desktop).
-   - If using **Docker directly**: Run `docker run --name diksha-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=diksha_crm -p 5432:5432 -d postgres:16`.
+- **Node.js** v18.18+ or v20+
+- **PostgreSQL 16** running locally on port `5432` with database `diksha_crm` (or Docker / Supabase CLI)
 
 ### Installation
 ```bash
-# Clone or navigate to the project directory
-cd "d:\diksha crm"
-
-# Install dependencies
+git clone https://github.com/vipulrane1212-lgtm/real-estate-pro-crm.git
+cd real-estate-pro-crm
 npm install
 ```
 
----
-
-## 2. Environment Configuration
-
-### Local Environment (`.env.local`)
-Create `.env.local` in the root folder (this file is gitignored and will never be committed):
-
+### Environment Configuration
+Copy `.env.example` to `.env.local` and configure your local database and app URL:
 ```env
-# Local Development Environment
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=local-anon-key-placeholder
 SUPABASE_SERVICE_ROLE_KEY=local-service-role-key-placeholder
-
-# Local PostgreSQL Database URL
-DATABASE_URL=postgresql://postgres:postgres@172.31.128.153:5432/diksha_crm
-
-# Application Public Host URL
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/diksha_crm
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-> **Note**: For `.env.example`, only variable NAMES are listed (no credentials):
-> - `NEXT_PUBLIC_SUPABASE_URL=`
-> - `NEXT_PUBLIC_SUPABASE_ANON_KEY=`
-> - `SUPABASE_SERVICE_ROLE_KEY=`
-> - `DATABASE_URL=`
-> - `NEXT_PUBLIC_APP_URL=`
-
----
-
-## 3. Applying Database Migrations Locally
-
-Apply the SQL migration files in `supabase/migrations/` sequentially to your local database:
-
+### Apply Database Migrations
+Run the SQL migrations in `supabase/migrations/` sequentially against your local PostgreSQL database:
 ```bash
-# 1. Base auth & core schema (profiles, employees, role_permissions, company_settings, audit_logs, RLS)
 psql -d diksha_crm -f supabase/migrations/20261120000001_initial_schema.sql
-
-# 2. Universal audit trigger on insert/update/delete
 psql -d diksha_crm -f supabase/migrations/20261120000002_audit_trigger.sql
-
-# 3. Future business tables (leads, properties, follow_ups, site_visits, documents, calls, deals, brokerage, expenses, attendance)
 psql -d diksha_crm -f supabase/migrations/20261120000003_future_tables.sql
-
-# 4. Storage buckets & Storage RLS (property-photos, documents, call-recordings, company-assets)
 psql -d diksha_crm -f supabase/migrations/20261120000004_storage_buckets.sql
-
-# 5. Default company seed & role permissions matrix (Diksha Real Estate)
 psql -d diksha_crm -f supabase/migrations/20261120000005_seed_and_security.sql
-
-# 6. Seed initial Super Admin account for local testing
 psql -d diksha_crm -f supabase/migrations/20261120000006_local_admin_seed.sql
+psql -d diksha_crm -f supabase/migrations/20261120000007_phase2_schema.sql
 ```
 
-*(These exact same migration files will be applied to cloud Supabase later with zero code rewrite).*
-
----
-
-## 4. Local Test Accounts & Credentials
-
-The database migration seeds the initial Super Admin account:
-
-- **Super Admin Credentials**:
-  - **Email**: `admin@diksharealestate.com`
-  - **Password**: `AdminPassword123!`
-  - **Role**: `super_admin` (Full access to all modules, employee management, and settings)
-
-- **Test Employee Account** (Created via Admin `/employees` portal):
-  - **Email**: `rohan@diksharealestate.com`
-  - **Password**: `AgentPassword123!`
-  - **Role**: `employee` (Assigned leads only, limited module permissions)
-
----
-
-## 5. Running the Application Locally
-
+### Run Locally
 ```bash
-# Start Next.js development server
 npm run dev
-
-# Open in browser:
-# http://localhost:3000
+# Open http://localhost:3000
 ```
 
-### Verified Local Endpoints:
-- `http://localhost:3000/login` — Agent authentication screen (white background, navy + gold accents)
-- `http://localhost:3000/dashboard` — Dashboard with 6 real counts (`0 / empty state`, no demo data)
-- `http://localhost:3000/employees` — Admin employee roster, account creation, activation toggling, and 8-module permission matrix
-- `http://localhost:3000/settings` — Diksha Real Estate agency profile & branding
-- `http://localhost:3000/leads` (and other Phase 2 routes) — Mapped with "Coming in next phase" empty states
-
----
-
-## 6. Local Quality Gates & Production Build
-
+### Production Build Check
 ```bash
-# Run strict TypeScript and Next.js production build verification
 npm run build
 ```
 
-**Build Status**: Passing with 0 errors, 0 warnings.
-
 ---
 
-## 7. Cloud Deployment Preparedness (Future Phase)
+## Author
 
-All application code, API routes, database helpers, and proxy middleware are **100% Vercel & Supabase Cloud ready**:
-- No hardcoded `localhost` URLs in production runtime code.
-- Dynamic environment variable resolution (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_APP_URL`).
-- All 5 Supabase migrations ready to run on any cloud Supabase instance with zero rebuild.
-- **Current status**: 0 cloud resources deployed; 0 Vercel deployments initiated. Ready for cloud release when testing concludes.
+**Vipul Rane**  
+GitHub: [@vipulrane1212-lgtm](https://github.com/vipulrane1212-lgtm)

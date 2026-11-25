@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import { Property } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('p', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     if (type && type !== 'all') {
       params.push(type);
@@ -133,6 +140,14 @@ export async function POST(request: Request) {
     const auth = await getAuthContext();
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Role Enforcement: Employees cannot add properties. Only owner / admin can add properties.
+    if (auth.role === 'employee' || (!auth.isAdmin && auth.role !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Forbidden: Employees cannot add property listings. Only the business owner can add properties.' },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, LogOut, ShieldCheck, User, Loader2 } from 'lucide-react';
+import { Menu, LogOut, ShieldCheck, User, Loader2, Database } from 'lucide-react';
 import { UserRole } from '@/lib/supabase/types';
 import { createClient } from '@/lib/supabase/client';
+import { useDemoData } from '@/modules/demo/demo-data-context';
 
 interface TopbarProps {
   userName: string;
@@ -21,6 +22,7 @@ export function Topbar({
 }: TopbarProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { showDemoData, setShowDemoData } = useDemoData();
 
   const handleLogout = async () => {
     try {
@@ -86,8 +88,40 @@ export function Topbar({
         </div>
       </div>
 
-      {/* Right: User identity, Role badge & Logout action */}
+      {/* Right: User identity, Role badge, Demo Switch & Logout action */}
       <div className="flex items-center gap-3 sm:gap-4">
+        {/* Global Demo Mode Toggle */}
+        {userRole !== 'employee' && (
+          <label
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold cursor-pointer transition-all shadow-2xs select-none ${
+              showDemoData
+                ? 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100/70'
+                : 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200/70'
+            }`}
+            title={
+              showDemoData
+                ? 'Demo Showcase Active: displaying full Lucknow demonstration dataset across all modules'
+                : 'Live Testing Mode: all demo records hidden, displaying real database data only'
+            }
+          >
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${
+                showDemoData ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'
+              }`}
+            />
+            <span className="hidden sm:inline">Demo Data:</span>
+            <span className={`font-bold ${showDemoData ? 'text-amber-800' : 'text-slate-700'}`}>
+              {showDemoData ? 'ON' : 'OFF'}
+            </span>
+            <input
+              type="checkbox"
+              checked={showDemoData}
+              onChange={(e) => setShowDemoData(e.target.checked)}
+              className="sr-only"
+            />
+          </label>
+        )}
+
         <div className="flex items-center gap-2.5 text-right">
           <div className="hidden text-right md:block">
             <p className="text-sm font-semibold text-slate-900 leading-tight">

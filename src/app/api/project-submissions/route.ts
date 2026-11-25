@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
 import { ProjectSubmissionRecord } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: (string | number)[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('ps', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     if (status && status !== 'all') {
       params.push(status);

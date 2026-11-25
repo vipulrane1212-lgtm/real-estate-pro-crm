@@ -3,6 +3,7 @@ import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import { Lead } from '@/lib/supabase/types';
 import { findDuplicateLead, normalizePhone } from '@/lib/leads/duplicate-check';
+import { shouldIncludeDemo } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,8 +53,9 @@ export async function GET(request: Request) {
       }
     }
 
-    // Demo filter
-    if (demo === 'real') {
+    // Demo filter (respects global cookie/header or query param)
+    const includeDemo = shouldIncludeDemo(request);
+    if (demo === 'real' || (!includeDemo && demo !== 'only')) {
       conditions.push(`(l.is_demo IS FALSE OR l.is_demo IS NULL)`);
     } else if (demo === 'only') {
       conditions.push(`l.is_demo IS TRUE`);

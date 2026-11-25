@@ -79,6 +79,9 @@ export function RentalsManagement() {
 
   useEffect(() => {
     fetchRentals();
+    const handleToggle = () => fetchRentals();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [statusFilter, search]);
 
   const openPaymentModal = (rental: RentalRecord) => {

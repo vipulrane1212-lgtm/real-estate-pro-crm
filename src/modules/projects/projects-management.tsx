@@ -66,6 +66,9 @@ export function ProjectsManagement() {
 
   useEffect(() => {
     fetchSubmissions();
+    const handleToggle = () => fetchSubmissions();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [statusFilter, search]);
 
   const handleApprove = async (sub: ProjectSubmissionRecord) => {

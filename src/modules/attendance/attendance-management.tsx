@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   UserCheck,
   Camera,
@@ -18,11 +19,13 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
+  Navigation,
 } from 'lucide-react';
 import { AttendanceRecord } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { CameraPunchModal } from './camera-punch-modal';
+import { LiveFleetRadar } from './live-fleet-radar';
 
 interface AttendanceSummary {
   total: number;
@@ -54,8 +57,8 @@ export function AttendanceManagement() {
   // Preview Photo Modal state
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
-  // Active Tab for Admin: 'daily' | 'monthly'
-  const [activeTab, setActiveTab] = useState<'daily' | 'monthly'>('daily');
+  // Active Tab for Admin: 'daily' | 'monthly' | 'radar'
+  const [activeTab, setActiveTab] = useState<'daily' | 'monthly' | 'radar'>('daily');
   const [monthlyData, setMonthlyData] = useState<{
     summary: Array<{
       employeeName: string;
@@ -67,6 +70,16 @@ export function AttendanceManagement() {
     }>;
   }>({ summary: [] });
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab === 'radar') {
+      setActiveTab('radar');
+    } else if (tab === 'monthly') {
+      setActiveTab('monthly');
+    }
+  }, [searchParams]);
 
   const fetchAttendance = async (refresh = false) => {
     if (refresh) setIsRefreshing(true);
@@ -103,6 +116,9 @@ export function AttendanceManagement() {
 
   useEffect(() => {
     fetchAttendance();
+    const handleToggle = () => fetchAttendance();
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, [selectedDate, selectedMonth]);
 
   const handleExportExcel = async () => {
@@ -267,7 +283,7 @@ export function AttendanceManagement() {
                 onClick={() => setActiveTab('daily')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
                   activeTab === 'daily'
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-slate-900 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -277,11 +293,23 @@ export function AttendanceManagement() {
                 onClick={() => setActiveTab('monthly')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
                   activeTab === 'monthly'
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-slate-900 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Monthly Executive Report
+              </button>
+              <button
+                onClick={() => setActiveTab('radar')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+                  activeTab === 'radar'
+                    ? 'bg-amber-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <Navigation className="h-3.5 w-3.5" />
+                24/7 Live Fleet Radar
               </button>
             </div>
 
@@ -296,7 +324,7 @@ export function AttendanceManagement() {
                   className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs focus:border-amber-500 focus:outline-hidden"
                 />
               </div>
-            ) : (
+            ) : activeTab === 'monthly' ? (
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-slate-500 font-medium">Select Month:</span>
                 <input
@@ -306,7 +334,7 @@ export function AttendanceManagement() {
                   className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs focus:border-amber-500 focus:outline-hidden"
                 />
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Daily Muster Roll View */}
@@ -552,6 +580,9 @@ export function AttendanceManagement() {
               )}
             </div>
           )}
+
+          {/* 24/7 Live Fleet Radar View */}
+          {activeTab === 'radar' && <LiveFleetRadar />}
         </div>
       )}
 

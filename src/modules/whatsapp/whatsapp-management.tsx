@@ -65,6 +65,12 @@ export function WhatsAppManagement() {
       setIsLoading(false);
     };
     init();
+    const handleToggle = () => {
+      fetchMessages();
+      fetchLeads();
+    };
+    window.addEventListener('diksha_demo_toggle', handleToggle);
+    return () => window.removeEventListener('diksha_demo_toggle', handleToggle);
   }, []);
 
   const handleRefresh = async () => {

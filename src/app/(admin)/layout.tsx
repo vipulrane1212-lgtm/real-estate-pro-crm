@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/modules/auth/auth-context';
+import { DemoDataProvider } from '@/modules/demo/demo-data-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { FollowUpAlarmOverlay } from '@/components/reminders/follow-up-alarm-overlay';
@@ -51,7 +52,9 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <DemoDataProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </DemoDataProvider>
     </AuthProvider>
   );
 }

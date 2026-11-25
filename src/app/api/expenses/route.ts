@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth/api-auth';
 import { query } from '@/lib/db';
 import { ExpenseRecord } from '@/lib/supabase/types';
+import { shouldIncludeDemo, getDemoCondition } from '@/lib/db/demo-filter';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,12 @@ export async function GET(request: Request) {
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+
+    const includeDemo = shouldIncludeDemo(request);
+    const demoCond = getDemoCondition('ex', includeDemo);
+    if (demoCond) {
+      conditions.push(demoCond);
+    }
 
     // Role-based visibility: Employees only see their own expenses
     if (!auth.isAdmin) {
@@ -123,6 +130,7 @@ export async function GET(request: Request) {
       chartEmployeeFilter = `AND employee_id = $${chartParams.length}`;
     }
 
+    const chartDemoCond = includeDemo ? '' : 'AND (ex.is_demo IS FALSE OR ex.is_demo IS NULL)';
     const chartSql = `
       WITH date_series AS (
         SELECT (CURRENT_DATE - (n || ' days')::interval)::date as day_date
@@ -135,7 +143,7 @@ export async function GET(request: Request) {
         COUNT(ex.id) as expense_count
       FROM date_series ds
       LEFT JOIN public.expenses ex 
-        ON ex.expense_date = ds.day_date ${chartEmployeeFilter}
+        ON ex.expense_date = ds.day_date ${chartEmployeeFilter} ${chartDemoCond}
       GROUP BY ds.day_date
       ORDER BY ds.day_date ASC
     `;
