@@ -280,7 +280,7 @@ export function EmployeeLiveTracker({
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full">
           <button
             onClick={() => setActiveTab('calls')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'calls'
                 ? 'bg-white text-sky-800 border border-sky-300 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
@@ -292,7 +292,7 @@ export function EmployeeLiveTracker({
 
           <button
             onClick={() => setActiveTab('visits')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'visits'
                 ? 'bg-white text-teal-800 border border-teal-300 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
@@ -304,7 +304,7 @@ export function EmployeeLiveTracker({
 
           <button
             onClick={() => setActiveTab('leads')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'leads'
                 ? 'bg-white text-purple-800 border border-purple-300 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
@@ -316,7 +316,7 @@ export function EmployeeLiveTracker({
 
           <button
             onClick={() => setActiveTab('deals')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'deals'
                 ? 'bg-white text-amber-800 border border-amber-300 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
@@ -328,7 +328,7 @@ export function EmployeeLiveTracker({
 
           <button
             onClick={() => setActiveTab('all')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'all'
                 ? 'bg-white text-slate-900 border border-slate-300 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
@@ -361,11 +361,11 @@ export function EmployeeLiveTracker({
       {/* ========================================================= */}
       {/* 4. WORK SECTION DETAILS CONTENT (White & Clean Cards)      */}
       {/* ========================================================= */}
-      <div className="p-6 space-y-6">
+      <div className="p-3.5 sm:p-6 space-y-5 sm:space-y-6">
         {/* ==================== TAB 1: CALLS FEED ==================== */}
         {(activeTab === 'calls' || activeTab === 'all') && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-sky-900 uppercase tracking-wider flex items-center gap-2">
                 <PhoneCall className="w-4 h-4 text-sky-600" />
                 Chronological Call Logs for {node.label} (Today)
@@ -434,7 +434,7 @@ export function EmployeeLiveTracker({
         {/* ==================== TAB 2: SITE VISITS ==================== */}
         {(activeTab === 'visits' || activeTab === 'all') && (
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-teal-900 uppercase tracking-wider flex items-center gap-2">
                 <Car className="w-4 h-4 text-teal-600" />
                 Today's Site Visits & Property Inspections
@@ -515,7 +515,7 @@ export function EmployeeLiveTracker({
         {/* ==================== TAB 3: HOT LEADS ==================== */}
         {(activeTab === 'leads' || activeTab === 'all') && (
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-purple-900 uppercase tracking-wider flex items-center gap-2">
                 <Flame className="w-4 h-4 text-purple-600" />
                 Active Hot Leads (Closing Stage)
@@ -580,7 +580,7 @@ export function EmployeeLiveTracker({
         {/* ==================== TAB 4: DEALS & PIPELINE ==================== */}
         {(activeTab === 'deals' || activeTab === 'all') && (
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-amber-600" />
                 Active Deals & Brokerage Pipeline

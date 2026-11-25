@@ -606,7 +606,7 @@ export function EmployeeManagement() {
                         ₹{p.thisMonth.brokerageEarned.toLocaleString('en-IN')}
                       </span>
                     </div>
-                    <div className="grid grid-cols-5 gap-1 rounded-lg bg-slate-50 border border-slate-200 p-2 text-center text-[11px]">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-1 rounded-lg bg-slate-50 border border-slate-200 p-2 text-center text-[11px]">
                       <div>
                         <span className="text-[9px] text-slate-400 block">Leads</span>
                         <strong className="text-slate-900">{p.today.leadsAssigned}</strong>
@@ -943,7 +943,7 @@ export function EmployeeManagement() {
               return (
                 <div key={mod.id} className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 space-y-2">
                   <div className="font-semibold text-xs text-slate-900">{mod.label}</div>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {(['view', 'create', 'edit', 'delete'] as const).map(action => (
                       <label
                         key={action}

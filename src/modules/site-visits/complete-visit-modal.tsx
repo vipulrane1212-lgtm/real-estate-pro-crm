@@ -81,7 +81,7 @@ export function CompleteVisitModal({
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
             Inspection Outcome
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setStatus('completed')}
@@ -125,7 +125,7 @@ export function CompleteVisitModal({
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                 Client Property Feedback
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
                   { id: 'interested', label: 'Interested', color: 'border-emerald-500 bg-emerald-50 text-emerald-800' },
                   { id: 'negotiating', label: 'Negotiating', color: 'border-amber-500 bg-amber-50 text-amber-800' },

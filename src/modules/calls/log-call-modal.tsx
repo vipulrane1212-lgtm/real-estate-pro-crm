@@ -236,9 +236,9 @@ export function LogCallModal({
           </label>
 
           {uploadedRecordingUrl ? (
-            <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/50 p-2 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-2.5 text-xs">
               <span className="text-emerald-800 font-medium">Recording attached</span>
-              <audio controls src={uploadedRecordingUrl} className="h-7 w-48" />
+              <audio controls src={uploadedRecordingUrl} className="h-8 sm:h-7 w-full sm:w-48" />
             </div>
           ) : (
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white p-3 text-xs text-slate-600 hover:border-amber-500 hover:bg-amber-50/20 transition">

@@ -333,7 +333,7 @@ export function SiteVisitsManagement() {
                       <Button
                         size="sm"
                         onClick={() => setCompletingVisit(v)}
-                        className="h-7 text-xs bg-emerald-600 text-white hover:bg-emerald-700"
+                        className="min-h-[36px] sm:min-h-0 sm:h-7 text-xs bg-emerald-600 text-white hover:bg-emerald-700"
                       >
                         <Check className="h-3 w-3 mr-1" /> Update Status
                       </Button>
@@ -342,7 +342,7 @@ export function SiteVisitsManagement() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteVisit(v.id)}
-                      className="h-7 text-xs text-slate-400 hover:text-red-600"
+                      className="min-h-[36px] sm:min-h-0 sm:h-7 text-xs text-slate-400 hover:text-red-600"
                     >
                       Delete
                     </Button>

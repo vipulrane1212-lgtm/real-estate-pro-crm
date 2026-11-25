@@ -8,7 +8,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Card({ children, className = '', ...props }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-slate-200/90 bg-white p-6 shadow-2xs ${className}`}
+      className={`rounded-xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-2xs ${className}`}
       {...props}
     >
       {children}
@@ -18,7 +18,7 @@ export function Card({ children, className = '', ...props }: CardProps) {
 
 export function CardHeader({ children, className = '', ...props }: CardProps) {
   return (
-    <div className={`mb-4 flex items-center justify-between ${className}`} {...props}>
+    <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 ${className}`} {...props}>
       {children}
     </div>
   );

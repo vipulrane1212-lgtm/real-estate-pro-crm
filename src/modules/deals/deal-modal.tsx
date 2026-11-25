@@ -211,7 +211,7 @@ export function DealModal({
         </div>
 
         {/* Deal Value & Brokerage % */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Final Deal Value (INR) <span className="text-red-500">*</span>
@@ -272,7 +272,7 @@ export function DealModal({
         )}
 
         {/* Closing Agent & Date */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Closing Agent

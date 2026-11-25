@@ -95,7 +95,7 @@ export function RentPaymentModal({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Rent Month (YYYY-MM) *
@@ -123,7 +123,7 @@ export function RentPaymentModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Payment Status *
@@ -159,7 +159,7 @@ export function RentPaymentModal({
         </div>
 
         {status === 'paid' && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-700">
                 Paid Date *

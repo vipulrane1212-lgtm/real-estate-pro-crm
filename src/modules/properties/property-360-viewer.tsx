@@ -18,20 +18,24 @@ export function Property360Viewer({ imageUrl, propertyTitle }: Property360Viewer
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    const handleMouseUp = () => setIsDragging(false);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
+    const handlePointerEnd = () => setIsDragging(false);
+    window.addEventListener('pointerup', handlePointerEnd);
+    window.addEventListener('pointercancel', handlePointerEnd);
+    return () => {
+      window.removeEventListener('pointerup', handlePointerEnd);
+      window.removeEventListener('pointercancel', handlePointerEnd);
+    };
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     setIsDragging(true);
-    setStartX(e.pageX - bgPositionX);
+    setStartX(e.clientX - bgPositionX);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - startX;
+    const x = e.clientX - startX;
     setBgPositionX(x);
   };
 
@@ -41,7 +45,7 @@ export function Property360Viewer({ imageUrl, propertyTitle }: Property360Viewer
 
   if (!imageUrl) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 sm:p-8 text-center">
         <Compass className="h-8 w-8 text-slate-400" />
         <h4 className="mt-2 text-xs font-semibold text-slate-700">No 360° Panorama Linked</h4>
         <p className="mt-1 max-w-xs text-[11px] text-slate-500">
@@ -52,24 +56,26 @@ export function Property360Viewer({ imageUrl, propertyTitle }: Property360Viewer
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-inner select-none ${isFullscreen ? 'fixed inset-4 z-50 rounded-2xl border-4 border-amber-500' : 'h-72 w-full'}`}>
+    <div className={`relative overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-inner select-none ${isFullscreen ? 'fixed inset-2 sm:inset-4 z-50 rounded-2xl border-4 border-amber-500' : 'h-56 sm:h-72 w-full'}`}>
       <div
         ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={() => setIsDragging(false)}
+        onPointerCancel={() => setIsDragging(false)}
         style={{
           backgroundImage: `url(${imageUrl})`,
           backgroundPosition: `${bgPositionX}px center`,
           backgroundRepeat: 'repeat-x',
           backgroundSize: 'auto 100%',
         }}
-        className="h-full w-full cursor-grab active:cursor-grabbing transition-none"
+        className="h-full w-full touch-none cursor-grab active:cursor-grabbing transition-none"
       />
 
       {/* Floating 360 Overlay Controls */}
       <div className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-amber-400 backdrop-blur-xs border border-amber-400/30">
         <Compass className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '6s' }} />
-        <span>360° Virtual Tour • Drag to pan</span>
+        <span>360° Tour • Drag or swipe</span>
       </div>
 
       <div className="absolute bottom-3 right-3 flex items-center gap-2">

@@ -481,7 +481,7 @@ export function ReportsDashboard() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-1.5 rounded-lg bg-white border border-slate-200 p-2 text-center text-[11px]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-1.5 rounded-lg bg-white border border-slate-200 p-2 text-center text-[11px]">
                       <div>
                         <span className="text-slate-400 block text-[10px]">Leads</span>
                         <strong className="text-slate-900">{agent.leadsAssigned}</strong>

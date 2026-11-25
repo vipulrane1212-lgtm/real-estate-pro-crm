@@ -205,10 +205,10 @@ export function FollowUpAlarmOverlay() {
   if (!activeReminder) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl bg-white border-2 border-amber-500 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 sm:backdrop-blur-md p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-lg max-h-[90dvh] flex flex-col rounded-2xl bg-white border-2 border-amber-500 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Urgent Flashing Header */}
-        <div className="bg-gradient-to-r from-red-600 via-amber-600 to-amber-700 p-4 text-white flex items-center justify-between">
+        <div className="shrink-0 bg-gradient-to-r from-red-600 via-amber-600 to-amber-700 p-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-white/20 rounded-full animate-bounce">
               <BellRing className="h-6 w-6 text-white" />
@@ -238,7 +238,7 @@ export function FollowUpAlarmOverlay() {
         </div>
 
         {/* Client & Overdue Details */}
-        <div className="p-4 sm:p-6 space-y-4 max-h-[75dvh] overflow-y-auto">
+        <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto overscroll-contain">
           <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-600 font-medium">Scheduled Time:</span>
@@ -292,7 +292,7 @@ export function FollowUpAlarmOverlay() {
                 value={outcomeNote}
                 onChange={(e) => setOutcomeNote(e.target.value)}
                 placeholder="Spoke with client, site visit scheduled for tomorrow..."
-                className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-white text-slate-900 text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
               <div className="flex justify-end gap-2 pt-1">
                 <Button
@@ -337,9 +337,10 @@ export function FollowUpAlarmOverlay() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => handleSnooze(5)}
                   disabled={isActionLoading}
                   className="text-xs border-slate-300 hover:bg-amber-50 text-slate-700"
@@ -348,6 +349,7 @@ export function FollowUpAlarmOverlay() {
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => handleSnooze(10)}
                   disabled={isActionLoading}
                   className="text-xs border-slate-300 hover:bg-amber-50 text-slate-700"
@@ -356,6 +358,7 @@ export function FollowUpAlarmOverlay() {
                 </Button>
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={handleAcknowledge}
                   disabled={isActionLoading}
                   className="text-xs text-slate-500 hover:text-slate-800"

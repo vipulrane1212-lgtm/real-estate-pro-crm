@@ -277,10 +277,9 @@ export function CameraPunchModal({
               <p className="mt-1 text-[11px] text-slate-300 max-w-xs">{cameraError}</p>
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={startCamera}
-                className="mt-3 text-white border-slate-600 hover:bg-slate-800 text-xs"
+                className="mt-3 bg-slate-800 text-white border border-slate-600 hover:bg-slate-700 text-xs"
               >
                 <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry Camera Access
               </Button>

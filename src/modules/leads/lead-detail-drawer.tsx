@@ -302,15 +302,14 @@ export function LeadDetailDrawer({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={() => onEditLead(lead)}
-              className="border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
+              className="inline-flex min-h-[36px] sm:min-h-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-3 sm:px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
             >
               <Edit className="h-3.5 w-3.5 sm:mr-1" />
               <span className="hidden sm:inline">Edit</span>
-            </Button>
+            </button>
             <button
               onClick={onClose}
               aria-label="Close lead details"
@@ -493,10 +492,10 @@ export function LeadDetailDrawer({
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 border-b border-slate-200 bg-white px-4 sm:px-6 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 border-b border-slate-200 bg-white px-3 sm:px-6 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('matches')}
-            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-2 py-3 text-xs font-semibold transition cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-2 sm:px-3 py-3 text-xs font-semibold transition cursor-pointer ${
               activeTab === 'matches'
                 ? 'border-amber-500 text-amber-700'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -506,7 +505,7 @@ export function LeadDetailDrawer({
             <span>Matches</span>
             <span className="hidden sm:inline">Properties</span>
             {matchedProperties.length > 0 && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+              <span className="rounded-full bg-amber-100 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-amber-800">
                 {matchedProperties.length}
               </span>
             )}
@@ -514,7 +513,7 @@ export function LeadDetailDrawer({
 
           <button
             onClick={() => setActiveTab('timeline')}
-            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-3 py-3 text-xs font-semibold transition cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-2.5 sm:px-3 py-3 text-xs font-semibold transition cursor-pointer ${
               activeTab === 'timeline'
                 ? 'border-amber-500 text-amber-700'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -523,7 +522,7 @@ export function LeadDetailDrawer({
             <History className="h-4 w-4 shrink-0" />
             <span>Timeline</span>
             {history.length > 0 && (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+              <span className="rounded-full bg-slate-100 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-slate-700">
                 {history.length}
               </span>
             )}
@@ -531,7 +530,7 @@ export function LeadDetailDrawer({
 
           <button
             onClick={() => setActiveTab('details')}
-            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-3 py-3 text-xs font-semibold transition cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-2.5 sm:px-3 py-3 text-xs font-semibold transition cursor-pointer ${
               activeTab === 'details'
                 ? 'border-amber-500 text-amber-700'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -543,7 +542,7 @@ export function LeadDetailDrawer({
 
           <button
             onClick={() => setActiveTab('documents')}
-            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-3 py-3 text-xs font-semibold transition cursor-pointer ${
+            className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 border-b-2 px-2.5 sm:px-3 py-3 text-xs font-semibold transition cursor-pointer ${
               activeTab === 'documents'
                 ? 'border-amber-500 text-amber-700'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -552,7 +551,7 @@ export function LeadDetailDrawer({
             <FileText className="h-4 w-4 shrink-0" />
             <span>Documents</span>
             {documents.length > 0 && (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+              <span className="rounded-full bg-slate-100 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-slate-700">
                 {documents.length}
               </span>
             )}
@@ -560,7 +559,7 @@ export function LeadDetailDrawer({
         </div>
 
         {/* Tab Content Body */}
-        <div className="sm:flex-1 sm:overflow-y-auto p-4 sm:p-6 pb-8 sm:pb-6">
+        <div className="sm:flex-1 sm:overflow-y-auto p-4 sm:p-6 pb-8 pb-safe sm:pb-6">
           {/* TAB 1: AUTO MATCHED PROPERTIES */}
           {activeTab === 'matches' && (
             <div className="space-y-4">

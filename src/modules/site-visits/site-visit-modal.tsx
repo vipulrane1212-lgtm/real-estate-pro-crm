@@ -180,7 +180,7 @@ export function SiteVisitModal({
         </div>
 
         {/* Date and Time */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5 text-slate-400" /> Visit Date

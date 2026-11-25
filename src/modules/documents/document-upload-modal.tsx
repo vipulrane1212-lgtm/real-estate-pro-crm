@@ -273,7 +273,7 @@ export function DocumentUploadModal({
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
             Associate Document With
           </label>
-          <div className="grid grid-cols-4 gap-1.5 mb-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-2">
             {[
               { id: 'lead', label: 'Client / Lead' },
               { id: 'property', label: 'Property' },

@@ -715,8 +715,8 @@ export function PropertyModal({
         </div>
 
         {/* Section 5: MULTIPLE PROPERTY PHOTOS & ROOM TAGGING */}
-        <div className="space-y-3 rounded-xl border border-amber-200/80 bg-amber-50/20 p-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-3 rounded-xl border border-amber-200/80 bg-amber-50/20 p-3.5 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
               <ImageIcon className="h-4 w-4 text-amber-600" />
               Property Photos & Room Explorer ({formData.photos.length} uploaded)
