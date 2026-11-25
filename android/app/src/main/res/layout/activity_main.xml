@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Please ensure your Windows computer running 'npm run dev' is on the same WiFi network and your firewall permits incoming connections on port 3000."
+            android:text="Unable to reach the CRM server. Please check your mobile data or Wi-Fi connection and tap Retry."
             android:textColor="@color/text_muted"
             android:textSize="13sp" />
 

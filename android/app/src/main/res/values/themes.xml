@@ -13,7 +13,5 @@
         <item name="android:colorPrimaryDark">@color/alarm_red_dark</item>
         <item name="android:windowBackground">@color/bg_dark</item>
         <item name="android:statusBarColor">@color/alarm_red_dark</item>
-        <item name="android:windowShowWhenLocked">true</item>
-        <item name="android:windowTurnScreenOn">true</item>
     </style>
 </resources>
